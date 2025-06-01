@@ -1,0 +1,10 @@
+## faz o daemon escutar em todas as interfaces (rede docker)
+SocksPort 0.0.0.0:9050
+
+## log em stdout
+Log notice stdout
+
+## (opcional) habilitar ControlPort caso queira NEWNYM
+ControlPort 9051
+HashedControlPassword 16:C1E070221028128D60BCAEA9E026EBB86142FA97854B68DADFD7668857
+## gerar senha com tor --hash-password SUA_SENHA_FORTE
