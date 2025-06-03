@@ -12,6 +12,6 @@ RUN apt-get update && apt-get install -y \
 
 ENV PYTHONPATH=/app
 
-COPY . /app
+COPY ./app/ /app
 
 CMD ["uvicorn", "main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

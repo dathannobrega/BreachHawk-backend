@@ -6,8 +6,6 @@ services:
   backend:
     build:
       context: ./backend
-    volumes:
-      - ./backend/app:/app
     ports:
       - "8000:8000"
     env_file:
@@ -66,10 +64,21 @@ services:
     env_file:
       - .env
     volumes:
-      - mongodata:/data/db
+      - ./mongodata:/data/db
       - ./mongo:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
+
+  frontend:
+    build:
+      context: ./BreachHawk-frontend
+      dockerfile: Dockerfile
+    image: breachhawk-frontend:latest
+    container_name: breachhawk-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:

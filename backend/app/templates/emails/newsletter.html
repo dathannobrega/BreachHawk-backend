@@ -1,0 +1,35 @@
+{% extends "emails/base.html" %}
+{% block content %}
+  <h1 style="color: #0069d9;">{{ campaign_title }}</h1>
+  <p>Olá, {{ user_name }}!</p>
+  <p>{{ preheader_text }}</p>
+
+  <!-- Exemplo de bloco de conteúdo em colunas simples -->
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+    <tr>
+      <td width="100%" style="padding: 16px 0;">
+        <img 
+          src="{{ image_url }}" 
+          alt="{{ image_alt }}" 
+          style="width: 100%; max-width: 560px; display: block; border-radius: 6px;" 
+        />
+      </td>
+    </tr>
+    <tr>
+      <td style="font-size: 16px; line-height: 1.6;">
+        {{ body_text }}
+      </td>
+    </tr>
+  </table>
+
+  <!-- Bloco de CTA -->
+  <p style="text-align: center; margin: 24px 0;">
+    <a href="{{ cta_url }}" class="btn">{{ cta_label }}</a>
+  </p>
+
+  <hr style="border: none; border-top: 1px solid #dddddd; margin: 24px 0;" />
+  <p style="font-size: 14px; color: #555555;">
+    Caso não queira mais receber nossas comunicações, 
+    <a href="{{ unsubscribe_url }}" style="color: #0069d9;">clique aqui para cancelar</a>.
+  </p>
+{% endblock %}

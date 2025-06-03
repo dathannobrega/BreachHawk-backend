@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     SMTP_USER: str = "avisos@meudominio.com"
     SMTP_PASS: str = "senhaforte123!"
 
+    FRONTEND_URL: str = "http://localhost"
+
 
     class Config:
         env_file = ".env"

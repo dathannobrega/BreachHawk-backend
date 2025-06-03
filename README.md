@@ -156,3 +156,15 @@ Worker Celery executa o dispatcher → chama registry["akira_cli"]
 AkiraCLIScraper.scrape() faz Playwright + Tor → grava leaks
 
 GET /sites/tasks/{task_id} devolve {"inserted": X}
+
+---
+Iniciar:
+```bash
+alembic revision --autogenerate -m "first commit"
+alembic upgrade head 
+```
+TOda vez que mudar algum model:
+```bash
+alembic revision --autogenerate -m "first commit"
+alembic upgrade head 
+```

@@ -1,0 +1,32 @@
+{% extends "emails/base.html" %}
+{% block content %}
+  <h2 style="color: #d9534f;">Alerta de Vazamento Detectado</h2>
+  <p>Olá, {{ user_name }}!</p>
+  <p>Identificamos um vazamento que pode afetar a empresa <strong>{{ company_name }}</strong>. Seguem os detalhes:</p>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin: 16px 0; font-size: 14px;">
+    <tr>
+      <td><strong>Empresa:</strong></td>
+      <td>{{ company_name }}</td>
+    </tr>
+    <tr>
+      <td><strong>País:</strong></td>
+      <td>{{ country }}</td>
+    </tr>
+    <tr>
+      <td><strong>Data do Vazamento:</strong></td>
+      <td>{{ leak_date }}</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><strong>Descrição:</strong></td>
+      <td>{{ description }}</td>
+    </tr>
+    <tr>
+      <td><strong>Link:</strong></td>
+      <td><a href="{{ leak_url }}" style="color: #0069d9;">Abrir Vazamento</a></td>
+    </tr>
+  </table>
+  <p>Recomendamos que verifique imediatamente as credenciais expostas e altere senhas.</p>
+  <p>
+    Se você já tomou providências, desconsidere esta mensagem.  
+  </p>
+{% endblock %}
