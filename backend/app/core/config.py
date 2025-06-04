@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     SMTP_PASS: str = "senhaforte123!"
 
     FRONTEND_URL: str = "http://localhost"
+    STRIPE_API_KEY: str = ""
 
 
     class Config:

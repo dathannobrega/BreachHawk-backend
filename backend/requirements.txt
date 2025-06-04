@@ -26,6 +26,7 @@ email-validator
 httpx
 motor
 itsdangerous
+stripe
 
 #testes
 pytest-asyncio
