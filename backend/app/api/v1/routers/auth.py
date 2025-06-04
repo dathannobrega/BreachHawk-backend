@@ -13,7 +13,7 @@ from schemas.auth import UserLogin, UserCreate, UserOut, PasswordChange, AuthRes
 from schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
@@ -70,7 +70,7 @@ async def forgot_password(
 
     # Gera token aleatório e expira em 1 hora
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(hours=1)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
     reset_token = PasswordResetToken(
         user_id=user.id,
@@ -96,7 +96,7 @@ def reset_password(
     Verifica o token, redefine a senha e remove o token do DB.
     """
     token_obj = db.query(PasswordResetToken).filter_by(token=data.token).first()
-    if not token_obj or token_obj.expires_at < datetime.utcnow():
+    if not token_obj or token_obj.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Token inválido ou expirado")
 
     user = db.query(User).filter_by(id=token_obj.user_id).first()
