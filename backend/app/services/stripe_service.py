@@ -1,11 +1,18 @@
-import stripe
+"""Wrapper helpers around the optional ``stripe`` dependency."""
+
 from core.config import settings
 
-stripe.api_key = settings.STRIPE_API_KEY or ""
+try:  # pragma: no cover - import-time check
+    import stripe
+except ModuleNotFoundError:  # package is optional
+    stripe = None
+
+if stripe:
+    stripe.api_key = settings.STRIPE_API_KEY or ""
 
 
 def list_invoices(limit: int = 20):
-    if not stripe.api_key:
+    if not stripe or not getattr(stripe, "api_key", None):
         return []
     try:
         resp = stripe.Invoice.list(limit=limit)
@@ -15,7 +22,7 @@ def list_invoices(limit: int = 20):
 
 
 def list_payments(limit: int = 20):
-    if not stripe.api_key:
+    if not stripe or not getattr(stripe, "api_key", None):
         return []
     try:
         resp = stripe.PaymentIntent.list(limit=limit)
@@ -25,7 +32,7 @@ def list_payments(limit: int = 20):
 
 
 def list_subscriptions(limit: int = 20):
-    if not stripe.api_key:
+    if not stripe or not getattr(stripe, "api_key", None):
         return []
     try:
         resp = stripe.Subscription.list(limit=limit)
