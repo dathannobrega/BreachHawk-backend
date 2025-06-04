@@ -1,5 +1,7 @@
 from enum import Enum
 from typing import Optional, Literal
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, ConfigDict
 
 class UserStatus(str, Enum):
@@ -39,7 +41,7 @@ class PlatformUserRead(BaseModel):
     status: UserStatus
     company: Optional[str] = None
     job_title: Optional[str] = None
-    last_login: Optional[str] = None
-    created_at: Optional[str] = None
+    last_login: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
