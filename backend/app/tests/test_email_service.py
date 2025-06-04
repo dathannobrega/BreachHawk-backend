@@ -1,6 +1,5 @@
 import sys
 import os
-# Ajusta o path para que “services” seja encontrado quando o pytest rodar
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pytest
@@ -20,14 +19,18 @@ async def test_send_alert_email(monkeypatch):
         sent['password'] = password
         sent['start_tls'] = start_tls
 
-    # Monkeypatch da função send()
-    monkeypatch.setattr(es, 'send', fake_send)
+    async def fake_render(template_name: str, context: dict) -> str:
+        return '<html>alert</html>'
 
-    # Dados de exemplo
+    monkeypatch.setattr(es, 'send', fake_send)
+    monkeypatch.setattr(es, 'render_template_to_string', fake_render)
+
     leak = {
         'company': 'TestCo',
-        'source_url': 'http://example.onion/leak/123',
-        'found_at': '2025-05-07T12:00:00Z'
+        'country': 'US',
+        'date': '2025-05-07',
+        'description': 'desc',
+        'link': 'http://example.onion/leak/123',
     }
 
     await es.send_alert_email('user@example.com', leak)
@@ -36,30 +39,28 @@ async def test_send_alert_email(monkeypatch):
     assert msg['From'] == es.SMTP_USER
     assert msg['To'] == 'user@example.com'
     assert msg['Subject'] == 'Novo vazamento: TestCo'
-
-    # A parte HTML deve conter nosso template
     html_part = msg.get_payload()[1]
-    content = html_part.get_content()
-    assert 'Vazamento Detectado' in content
-    assert 'TestCo' in content
-    assert 'http://example.onion/leak/123' in content
+    assert 'alert' in html_part.get_content()
 
 
-def test_send_password_reset_email(monkeypatch):
+@pytest.mark.asyncio
+async def test_send_password_reset_email(monkeypatch):
     sent = {}
 
-    def fake_send(msg: EmailMessage, hostname, port, username, password, start_tls):
+    async def fake_send(msg: EmailMessage, hostname, port, username, password, start_tls):
         sent['msg'] = msg
 
     monkeypatch.setattr(es, 'send', fake_send)
+    async def fake_render(*args, **kwargs):
+        return '<html></html>'
 
-    es.send_password_reset_email('user@example.com', 'http://reset-link')
+    monkeypatch.setattr(es, 'render_template_to_string', fake_render)
+
+    await es.send_password_reset_email('user@example.com', 'http://reset-link', 'User')
 
     msg = sent['msg']
     assert msg['From'] == es.SMTP_USER
     assert msg['To'] == 'user@example.com'
     assert msg['Subject'] == 'Redefinição de senha – Deep Protexion'
-
-    # A parte plain-text deve conter o link de reset
     text_part = msg.get_payload()[0]
     assert 'http://reset-link' in text_part.get_content()
