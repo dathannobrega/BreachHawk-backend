@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.sql import func
 from ..base import Base
 
 class User(Base):
@@ -17,3 +18,6 @@ class User(Base):
     job_title = Column(String, nullable=True)
     organization = Column(String, nullable=True)
     contact = Column(String, nullable=True)
+    status = Column(String, default="active", nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_login = Column(DateTime(timezone=True), nullable=True)
