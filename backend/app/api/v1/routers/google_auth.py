@@ -41,10 +41,44 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
     # Cria ou encontra usuário no banco
     user = db.query(User).filter_by(email=userinfo["email"]).first()
     if not user:
-        user = User(email=userinfo["email"], hashed_password="!", role="user")
+        # Deriva username basico do email, se possível
+        username = userinfo.get("email", "").split("@")[0] or None
+        user = User(
+            email=userinfo["email"],
+            hashed_password="!",
+            role="user",
+            username=username,
+            first_name=userinfo.get("given_name"),
+            last_name=userinfo.get("family_name"),
+            profile_image=userinfo.get("picture"),
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
+    else:
+        # Atualiza campos caso ainda não estejam preenchidos
+        updated = False
+        if not user.first_name and userinfo.get("given_name"):
+            user.first_name = userinfo.get("given_name")
+            updated = True
+        if not user.last_name and userinfo.get("family_name"):
+            user.last_name = userinfo.get("family_name")
+            updated = True
+        if not user.profile_image and userinfo.get("picture"):
+            user.profile_image = userinfo.get("picture")
+            updated = True
+        if not user.username:
+            username = userinfo.get("email", "").split("@")[0] or None
+            if username:
+                # Checa se username ja existe em outro usuario
+                exists = db.query(User).filter(User.username == username).first()
+                if not exists:
+                    user.username = username
+                    updated = True
+        if updated:
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
     # Gera o JWT
     jwt = create_access_token({"sub": str(user.id)})

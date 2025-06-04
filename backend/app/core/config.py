@@ -1,4 +1,7 @@
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:  # fallback para testes sem o pacote
+    from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "BreachHawk"
