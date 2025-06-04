@@ -118,3 +118,9 @@ def change_password(
     current_user.hashed_password = get_password_hash(data.new_password)
     db.commit()
     return {"message": "Senha alterada com sucesso!"}
+
+
+@router.get("/me", response_model=UserOut, tags=["auth"])
+def read_current_user(current_user: User = Depends(get_current_user)):
+    """Retorna os dados do usuário autenticado."""
+    return current_user
