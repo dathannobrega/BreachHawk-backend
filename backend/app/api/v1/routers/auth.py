@@ -9,7 +9,7 @@ from services.auth_service import authenticate_user
 from services.email_service import send_password_reset_email
 from db.models.user import User
 from db.models.password_reset import PasswordResetToken
-from schemas.auth import UserLogin, Token, UserCreate, UserOut, PasswordChange
+from schemas.auth import UserLogin, UserCreate, UserOut, PasswordChange, AuthResponse
 from schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest
 
 import secrets
@@ -18,16 +18,19 @@ from datetime import datetime, timedelta
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token, tags=["auth"])
+@router.post("/login", response_model=AuthResponse, tags=["auth"])
 def login(data: UserLogin, db: Session = Depends(get_db)):
-    user = authenticate_user(db, data.email, data.password)
+    email = data.email or data.username
+    if not email:
+        raise HTTPException(status_code=400, detail="Email ou username requerido")
+    user = authenticate_user(db, email, data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     access_token = create_access_token({"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 
-@router.post("/register", response_model=UserOut, tags=["auth"])
+@router.post("/register", response_model=AuthResponse, tags=["auth"])
 def register(data: UserCreate, db: Session = Depends(get_db)):
     existing = db.query(User).filter_by(email=data.email).first()
     if existing:
@@ -40,7 +43,8 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+    access_token = create_access_token({"sub": str(new_user.id)})
+    return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
 @router.post("/forgot-password", tags=["auth"])
