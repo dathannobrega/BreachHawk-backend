@@ -21,7 +21,7 @@ class LeakDoc(BaseModel):
     rar_password: Optional[str]       = None
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "site_id": 1,
                 "company": "Acme Corp",
@@ -31,3 +31,5 @@ class LeakDoc(BaseModel):
                 "download_links": ["magnet:?xt=urn:btih:..."]
             }
         }
+        # backward compatibility with Pydantic v1
+        schema_extra = json_schema_extra
