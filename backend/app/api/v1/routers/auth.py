@@ -45,7 +45,7 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
         last_name=data.last_name,
         company=data.company,
         job_title=data.job_title,
-        is_admin=False,
+        role="user",
     )
     db.add(new_user)
     db.commit()

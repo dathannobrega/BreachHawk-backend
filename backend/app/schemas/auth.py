@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Literal
 from pydantic import BaseModel, EmailStr, ConfigDict
 
 
@@ -33,6 +34,7 @@ class UserOut(BaseModel):
     email: EmailStr
     first_name: str | None = None
     last_name: str | None = None
+    role: Literal["admin", "user", "platform_admin"]
     company: str | None = None
     job_title: str | None = None
     profile_image: str | None = None

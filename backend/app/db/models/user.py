@@ -10,7 +10,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
-    is_admin = Column(Boolean, default=False, nullable=False)
+    role = Column(String, default="user", nullable=False)
     is_subscribed = Column(Boolean, default=True, nullable=False)
     profile_image = Column(String, nullable=True)
     company = Column(String, nullable=True)
