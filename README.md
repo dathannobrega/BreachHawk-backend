@@ -168,3 +168,11 @@ TOda vez que mudar algum model:
 alembic revision --autogenerate -m "first commit"
 alembic upgrade head 
 ```
+## Billing API
+
+Os endpoints de faturamento expõem dados do Stripe e requerem token de usuário com funcção `platform_admin`.
+
+- `GET /api/v1/billing/invoices`
+- `GET /api/v1/billing/payments`
+- `GET /api/v1/billing/subscriptions`
+
