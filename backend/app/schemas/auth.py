@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, EmailStr, ConfigDict
 
 
@@ -5,11 +7,15 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+class AuthResponse(Token):
+    user: "UserOut"
+
 class TokenData(BaseModel):
     username: str | None = None
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: EmailStr | None = None
+    username: str | None = None
     password: str
 
 class UserCreate(BaseModel):
