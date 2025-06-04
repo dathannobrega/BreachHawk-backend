@@ -9,3 +9,6 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
     is_subscribed = Column(Boolean, default=True, nullable=False)
+    profile_image = Column(String, nullable=True)
+    organization = Column(String, nullable=True)
+    contact = Column(String, nullable=True)

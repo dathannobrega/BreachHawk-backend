@@ -19,8 +19,19 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
     id: int
     email: EmailStr
+    profile_image: str | None = None
+    organization: str | None = None
+    contact: str | None = None
+    is_subscribed: bool
     model_config = ConfigDict(from_attributes=True)
 
 class PasswordChange(BaseModel):
     old_password: str
     new_password: str
+
+
+class UserUpdate(BaseModel):
+    profile_image: str | None = None
+    organization: str | None = None
+    contact: str | None = None
+    is_subscribed: bool | None = None
