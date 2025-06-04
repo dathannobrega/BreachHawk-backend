@@ -31,14 +31,15 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        sub: str = payload.get("sub")
+        if sub is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
+        user_id = int(sub)
+    except (JWTError, ValueError):
+        # ValueError pode ocorrer se sub não for convertível a int
         raise credentials_exception
 
-    user = db.query(User).filter(User.email == token_data.username).first()
+    user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
     return user

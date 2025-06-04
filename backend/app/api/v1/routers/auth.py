@@ -43,7 +43,7 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    access_token = create_access_token({"sub": str(new_user.id)})
+    access_token = create_access_token({"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
@@ -73,7 +73,7 @@ async def forgot_password(
     db.add(reset_token)
     db.commit()
 
-    reset_link = f"http://localhost:3000/reset-password?token={token}"
+    reset_link = f"https://dev.protexion.cloud/reset-password?token={token}"
     # Agora passamos também o user.email (ou user.name, se existir um campo de nome no model)
     background_tasks.add_task(send_password_reset_email, user.email, reset_link, user.email)
 

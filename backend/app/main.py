@@ -27,7 +27,7 @@ def create_app() -> FastAPI:
     # Middleware de CORS
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["https://www.protexion.cloud"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -57,11 +57,6 @@ def create_app() -> FastAPI:
         return {"message": "UP"}
 
     return app
-
-app = FastAPI(
-    title="BreachHawk API",
-    version="1.0.0"
-)
 
 # depois de configurar CORS, routers etc.
 templates = Jinja2Templates(directory="./templates")  # aponta para a pasta raiz de templates

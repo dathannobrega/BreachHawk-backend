@@ -47,7 +47,8 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         db.refresh(user)
 
     # Gera o JWT
-    jwt = create_access_token({"sub": user.email})
+    jwt = create_access_token({"sub": str(user.id)})
+
 
     # Em vez de apenas "/login?token=...", usamos a URL completa do frontend
     frontend_url = settings.FRONTEND_URL  # ex: "http://localhost:3000"
