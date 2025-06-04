@@ -41,7 +41,7 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
     # Cria ou encontra usuário no banco
     user = db.query(User).filter_by(email=userinfo["email"]).first()
     if not user:
-        user = User(email=userinfo["email"], hashed_password="!", is_admin=False)
+        user = User(email=userinfo["email"], hashed_password="!", role="user")
         db.add(user)
         db.commit()
         db.refresh(user)
