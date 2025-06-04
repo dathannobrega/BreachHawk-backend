@@ -19,12 +19,22 @@ class UserLogin(BaseModel):
     password: str
 
 class UserCreate(BaseModel):
+    username: str | None = None
     email: EmailStr
     password: str
+    first_name: str | None = None
+    last_name: str | None = None
+    company: str | None = None
+    job_title: str | None = None
 
 class UserOut(BaseModel):
     id: int
+    username: str | None = None
     email: EmailStr
+    first_name: str | None = None
+    last_name: str | None = None
+    company: str | None = None
+    job_title: str | None = None
     profile_image: str | None = None
     organization: str | None = None
     contact: str | None = None
@@ -37,6 +47,11 @@ class PasswordChange(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    company: str | None = None
+    job_title: str | None = None
     profile_image: str | None = None
     organization: str | None = None
     contact: str | None = None

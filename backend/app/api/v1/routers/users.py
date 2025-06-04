@@ -18,6 +18,19 @@ def update_current_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if data.username is not None:
+        existing = db.query(User).filter(User.username == data.username).first()
+        if existing and existing.id != current_user.id:
+            raise HTTPException(status_code=400, detail="Username já em uso")
+        current_user.username = data.username
+    if data.first_name is not None:
+        current_user.first_name = data.first_name
+    if data.last_name is not None:
+        current_user.last_name = data.last_name
+    if data.company is not None:
+        current_user.company = data.company
+    if data.job_title is not None:
+        current_user.job_title = data.job_title
     if data.profile_image is not None:
         current_user.profile_image = data.profile_image
     if data.organization is not None:
