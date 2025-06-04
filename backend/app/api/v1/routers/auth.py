@@ -20,10 +20,10 @@ router = APIRouter()
 
 @router.post("/login", response_model=AuthResponse, tags=["auth"])
 def login(data: UserLogin, db: Session = Depends(get_db)):
-    email = data.email or data.username
-    if not email:
+    identifier = data.email or data.username
+    if not identifier:
         raise HTTPException(status_code=400, detail="Email ou username requerido")
-    user = authenticate_user(db, email, data.password)
+    user = authenticate_user(db, identifier, data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     access_token = create_access_token({"sub": str(user.id)})
@@ -32,18 +32,25 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/register", response_model=AuthResponse, tags=["auth"])
 def register(data: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter_by(email=data.email).first()
+    existing = db.query(User).filter(
+        (User.email == data.email) | (User.username == data.username)
+    ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+        raise HTTPException(status_code=400, detail="E-mail ou usuário já cadastrado")
     new_user = User(
+        username=data.username,
         email=data.email,
         hashed_password=get_password_hash(data.password),
+        first_name=data.first_name,
+        last_name=data.last_name,
+        company=data.company,
+        job_title=data.job_title,
         is_admin=False,
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    access_token = create_access_token({"sub": str(user.id)})
+    access_token = create_access_token({"sub": str(new_user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
