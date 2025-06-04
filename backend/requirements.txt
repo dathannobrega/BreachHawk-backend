@@ -29,3 +29,4 @@ itsdangerous
 
 #testes
 pytest-asyncio
+pydantic_settings
