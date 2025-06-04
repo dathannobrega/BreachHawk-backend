@@ -4,7 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from fastapi.templating import Jinja2Templates
 
-from api.v1.routers import google_auth, auth, leaks, sites, snapshots, marketing, users, billing
+from api.v1.routers import (
+    google_auth,
+    auth,
+    leaks,
+    sites,
+    snapshots,
+    marketing,
+    users,
+    billing,
+    companies,
+    platform_users,
+)
 from db.mongodb import init_mongo_indexes
 from core.logging_conf import configure_logging
 from core.config import settings
@@ -50,6 +61,8 @@ def create_app() -> FastAPI:
     app.include_router(marketing.router, prefix="/api/v1/marketing", tags=["marketing"])
     app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
     app.include_router(billing.router, prefix="/api/v1", tags=["billing"])
+    app.include_router(companies.router, prefix="/api/v1", tags=["companies"])
+    app.include_router(platform_users.router, prefix="/api/v1", tags=["platform_users"])
 
 
     # Health check
