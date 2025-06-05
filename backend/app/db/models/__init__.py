@@ -6,3 +6,5 @@ from .snapshot import ScrapeSnapshot
 from .webhook import Webhook
 from .site_metrics import SiteMetrics
 from .company import Company
+from .login_history import LoginHistory
+from .user_session import UserSession

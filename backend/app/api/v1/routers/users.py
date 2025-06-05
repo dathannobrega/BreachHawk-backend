@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from api.v1.deps import get_db, get_current_user
 from schemas.auth import UserOut, UserUpdate
@@ -39,6 +39,27 @@ def update_current_user(
         current_user.contact = data.contact
     if data.is_subscribed is not None:
         current_user.is_subscribed = data.is_subscribed
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.post("/me/profile-image", response_model=UserOut)
+def upload_profile_image(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    import os, uuid
+    directory = "static/profile_images"
+    os.makedirs(directory, exist_ok=True)
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"{uuid.uuid4().hex}{ext}"
+    path = os.path.join(directory, filename)
+    with open(path, "wb") as out_file:
+        out_file.write(file.file.read())
+    current_user.profile_image = f"/static/profile_images/{filename}"
     db.add(current_user)
     db.commit()
     db.refresh(current_user)

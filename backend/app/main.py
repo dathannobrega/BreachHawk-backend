@@ -1,5 +1,6 @@
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from fastapi.templating import Jinja2Templates
@@ -51,6 +52,9 @@ def create_app() -> FastAPI:
         session_cookie="session",
         max_age=60 * 60 * 24 * 30,  # 30 dias, ajuste conforme precisar
     )
+
+    # Serve static files
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     # Inclui os routers
     app.include_router(auth.router,       prefix="/api/v1/auth",  tags=["auth"])
