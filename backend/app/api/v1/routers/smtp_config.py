@@ -4,7 +4,6 @@ from api.v1.deps import get_db, get_current_platform_admin_user
 from db.models.smtp_config import SMTPConfig
 from schemas.smtp_config import SMTPConfigRead, SMTPConfigUpdate, TestEmailRequest
 from services.email_service import send_simple_email
-from core.config import settings
 
 router = APIRouter(prefix="/smtp-config", tags=["smtp"])
 
@@ -18,7 +17,7 @@ def read_config(db: Session = Depends(get_db), _=Depends(get_current_platform_ad
     cfg = _get_current(db)
     if cfg:
         return cfg
-    return SMTPConfigRead(host=settings.SMTP_HOST, port=settings.SMTP_PORT, username=settings.SMTP_USER, from_email=settings.SMTP_USER)
+    return SMTPConfigRead(host="", port=587, username="", from_email="")
 
 
 @router.put("/", response_model=SMTPConfigRead)

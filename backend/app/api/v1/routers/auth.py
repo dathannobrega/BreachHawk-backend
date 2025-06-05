@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from core.jwt import create_access_token
 from core.security import get_password_hash, verify_password
+from services.password_policy import validate_password
+from core.config import settings
 from api.v1.deps import get_db, get_current_user
-from services.auth_service import authenticate_user
 from services.email_service import send_password_reset_email
 from db.models.user import User
 from db.models.password_reset import PasswordResetToken
@@ -25,18 +26,33 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     identifier = data.email or data.username
     if not identifier:
         raise HTTPException(status_code=400, detail="Email ou username requerido")
-    user = authenticate_user(db, identifier, data.password)
+    user = db.query(User).filter((User.email == identifier) | (User.username == identifier)).first()
     if not user:
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-    expires = 60 if user.status == "inactive" else None
-    access_token = create_access_token({"sub": str(user.id)}, expires_minutes=expires)
+    now = datetime.now(timezone.utc)
+    if user.lockout_until and user.lockout_until > now:
+        raise HTTPException(status_code=403, detail="Conta bloqueada")
+
+    if not verify_password(data.password, user.hashed_password):
+        user.failed_login_attempts += 1
+        if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
+            user.lockout_until = now + timedelta(minutes=settings.ACCOUNT_LOCKOUT_MINUTES)
+            user.failed_login_attempts = 0
+        db.commit()
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+
+    user.failed_login_attempts = 0
+    user.lockout_until = None
+
+    expires_minutes = settings.SESSION_TIMEOUT_HOURS * 60
+    access_token = create_access_token({"sub": str(user.id)}, expires_minutes=expires_minutes)
 
     # update last login and record history
     now = datetime.now(timezone.utc)
     user.last_login = now
     db.add(LoginHistory(user_id=user.id, timestamp=now))
-    db.add(UserSession(user_id=user.id, token=access_token, expires_at=now + timedelta(minutes=expires or 30)))
+    db.add(UserSession(user_id=user.id, token=access_token, expires_at=now + timedelta(minutes=expires_minutes)))
     db.commit()
     db.refresh(user)
 
@@ -50,6 +66,9 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="E-mail ou usuário já cadastrado")
+    error = validate_password(data.password)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
     new_user = User(
         username=data.username,
         email=data.email,
@@ -63,7 +82,8 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    access_token = create_access_token({"sub": str(new_user.id)})
+    exp = settings.SESSION_TIMEOUT_HOURS * 60
+    access_token = create_access_token({"sub": str(new_user.id)}, expires_minutes=exp)
     return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
@@ -116,6 +136,10 @@ def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
+    error = validate_password(data.new_password)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+
     user.hashed_password = get_password_hash(data.new_password)
     db.delete(token_obj)
     db.commit()
@@ -134,6 +158,10 @@ def change_password(
     """
     if not verify_password(data.old_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Senha antiga incorreta")
+
+    error = validate_password(data.new_password)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
 
     current_user.hashed_password = get_password_hash(data.new_password)
     db.commit()
