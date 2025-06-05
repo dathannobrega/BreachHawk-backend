@@ -7,6 +7,9 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.config import Config
 from sqlalchemy.orm import Session
 from api.v1.deps import get_db
+from db.models.login_history import LoginHistory
+from db.models.user_session import UserSession
+from datetime import datetime, timedelta, timezone
 from core.jwt import create_access_token
 from db.models.user import User
 import os
@@ -80,9 +83,16 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(user)
 
-    # Gera o JWT
+    # Gera o JWT e registra login
     expires = 60 if user.status == "inactive" else None
     jwt = create_access_token({"sub": str(user.id)}, expires_minutes=expires)
+
+    now = datetime.now(timezone.utc)
+    user.last_login = now
+    db.add(LoginHistory(user_id=user.id, timestamp=now))
+    db.add(UserSession(user_id=user.id, token=jwt, expires_at=now + timedelta(minutes=expires or 30)))
+    db.commit()
+    db.refresh(user)
 
 
     # Em vez de apenas "/login?token=...", usamos a URL completa do frontend

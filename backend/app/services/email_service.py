@@ -3,13 +3,45 @@
 from email.message import EmailMessage
 from aiosmtplib import send
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 from core.config import settings
 from core.token_utils import generate_unsubscribe_token
+from db.models.smtp_config import SMTPConfig
 
 SMTP_HOST = settings.SMTP_HOST
 SMTP_PORT = settings.SMTP_PORT
 SMTP_USER = settings.SMTP_USER
 SMTP_PASS = settings.SMTP_PASS
+
+
+def _load_config(db: Session | None = None):
+    if db:
+        cfg = db.query(SMTPConfig).first()
+        if cfg:
+            return cfg.host, cfg.port, cfg.username, cfg.password, cfg.from_email
+    return SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_USER
+
+
+async def _send_email(msg: EmailMessage, db: Session | None = None):
+    host, port, user, password, from_email = _load_config(db)
+    if not msg.get("From"):
+        msg["From"] = from_email
+    await send(
+        msg,
+        hostname=host,
+        port=port,
+        username=user,
+        password=password,
+        start_tls=True,
+    )
+
+
+async def send_simple_email(to_email: str, subject: str, body: str, db: Session | None = None):
+    msg = EmailMessage()
+    msg["To"] = to_email
+    msg["Subject"] = subject
+    msg.set_content(body)
+    await _send_email(msg, db)
 
 # Instância global do Jinja2Templates, apontando para a pasta raiz dos seus templates.
 # (Certifique-se de que exista uma pasta "./templates/emails/" conforme explicado anteriormente.)
@@ -23,13 +55,12 @@ async def render_template_to_string(template_name: str, context: dict) -> str:
     return templates.env.get_template(template_name).render(**context)
 
 
-async def send_alert_email(to_email: str, leak: dict):
+async def send_alert_email(to_email: str, leak: dict, db: Session | None = None):
     """
     Envia e-mail de alerta sobre vazamento (utilizado em outros pontos do sistema).
     Se você já tiver um template HTML específico, basta adaptar este exemplo.
     """
     msg = EmailMessage()
-    msg["From"] = SMTP_USER
     msg["To"] = to_email
     msg["Subject"] = f"Novo vazamento: {leak['company']}"
 
@@ -61,17 +92,10 @@ async def send_alert_email(to_email: str, leak: dict):
     msg.set_content(text_content)
     msg.add_alternative(html_content, subtype="html")
 
-    await send(
-        msg,
-        hostname=SMTP_HOST,
-        port=SMTP_PORT,
-        username=SMTP_USER,
-        password=SMTP_PASS,
-        start_tls=True,
-    )
+    await _send_email(msg, db)
 
 
-async def send_password_reset_email(to_email: str, reset_link: str, user_name: str):
+async def send_password_reset_email(to_email: str, reset_link: str, user_name: str, db: Session | None = None):
     """
     Envia e-mail de redefinição de senha.
     - to_email: e-mail do destinatário
@@ -100,36 +124,29 @@ async def send_password_reset_email(to_email: str, reset_link: str, user_name: s
     )
 
     msg = EmailMessage()
-    msg["From"] = SMTP_USER
     msg["To"] = to_email
     msg["Subject"] = subject
     msg.set_content(text_content)
     msg.add_alternative(html_content, subtype="html")
 
-    await send(
-        msg,
-        hostname=SMTP_HOST,
-        port=SMTP_PORT,
-        username=SMTP_USER,
-        password=SMTP_PASS,
-        start_tls=True,
-    )
+    await _send_email(msg, db)
 
 
 
-async def send_newsletter_email(to_email: str, user_name: str):
-    # 1) Pega o user do DB (aqui só mostramos o token).
-    #    Suponha que a função receba o `user_id` diretamente ou que você já tenha o objeto.
+
+async def send_newsletter_email(to_email: str, user_name: str, db: Session | None = None):
+    """Envia uma newsletter de exemplo."""
     user_id = ...  # id do usuário destino
-
     token = generate_unsubscribe_token(user_id)
     unsubscribe_link = f"{settings.FRONTEND_URL}/unsubscribe?token={token}"
 
-    # No contexto de render_template:
+    subject = "Nossa Newsletter Semanal"
+    text_content = "Veja as novidades da semana"
+
     html_content = await render_template_to_string(
         "emails/newsletter.html",
         {
-            "subject": "Nossa Newsletter Semanal",
+            "subject": subject,
             "user_name": user_name,
             "preheader_text": "Confira as principais novidades desta semana!",
             "body_text": "Aqui vai o texto principal da newsletter...",
@@ -142,17 +159,10 @@ async def send_newsletter_email(to_email: str, user_name: str):
     )
 
     msg = EmailMessage()
-    msg["From"] = SMTP_USER
     msg["To"] = to_email
     msg["Subject"] = subject
     msg.set_content(text_content)
     msg.add_alternative(html_content, subtype="html")
+    await _send_email(msg, db)
 
-    await send(
-        msg,
-        hostname=SMTP_HOST,
-        port=SMTP_PORT,
-        username=SMTP_USER,
-        password=SMTP_PASS,
-        start_tls=True,
-    )
+

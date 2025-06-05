@@ -16,6 +16,7 @@ from api.v1.routers import (
     billing,
     companies,
     platform_users,
+    smtp_config,
 )
 from db.mongodb import init_mongo_indexes
 from core.logging_conf import configure_logging
@@ -67,6 +68,7 @@ def create_app() -> FastAPI:
     app.include_router(billing.router, prefix="/api/v1", tags=["billing"])
     app.include_router(companies.router, prefix="/api/v1", tags=["companies"])
     app.include_router(platform_users.router, prefix="/api/v1", tags=["platform_users"])
+    app.include_router(smtp_config.router, prefix="/api/v1", tags=["smtp"])
 
 
     # Health check
