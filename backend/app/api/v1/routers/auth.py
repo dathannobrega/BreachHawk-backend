@@ -9,6 +9,8 @@ from services.auth_service import authenticate_user
 from services.email_service import send_password_reset_email
 from db.models.user import User
 from db.models.password_reset import PasswordResetToken
+from db.models.login_history import LoginHistory
+from db.models.user_session import UserSession
 from schemas.auth import UserLogin, UserCreate, UserOut, PasswordChange, AuthResponse
 from schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest
 
@@ -29,6 +31,14 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
     expires = 60 if user.status == "inactive" else None
     access_token = create_access_token({"sub": str(user.id)}, expires_minutes=expires)
+
+    # update last login and record history
+    now = datetime.now(timezone.utc)
+    user.last_login = now
+    db.add(LoginHistory(user_id=user.id, timestamp=now))
+    db.add(UserSession(user_id=user.id, token=access_token, expires_at=now + timedelta(minutes=expires or 30)))
+    db.commit()
+    db.refresh(user)
 
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
@@ -134,3 +144,25 @@ def change_password(
 def read_current_user(current_user: User = Depends(get_current_user)):
     """Retorna os dados do usuário autenticado."""
     return current_user
+
+
+from typing import List
+from schemas import LoginHistoryRead, UserSessionRead
+
+@router.get("/login-history", response_model=List[LoginHistoryRead], tags=["auth"])
+def get_login_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return db.query(LoginHistory).filter_by(user_id=current_user.id).order_by(LoginHistory.timestamp.desc()).all()
+
+
+@router.get("/sessions", response_model=List[UserSessionRead], tags=["auth"])
+def get_sessions(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return db.query(UserSession).filter_by(user_id=current_user.id).order_by(UserSession.created_at.desc()).all()
+
+
+@router.delete("/sessions/{session_id}", tags=["auth"])
+def delete_session(session_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    session = db.query(UserSession).filter_by(id=session_id, user_id=current_user.id).first()
+    if session:
+        db.delete(session)
+        db.commit()
+    return {"success": True}
