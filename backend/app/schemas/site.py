@@ -13,24 +13,26 @@ class CaptchaType(str, Enum):
     rotated = "rotated"
 
 class SiteCreate(BaseModel):
-    url: str
-    auth_type: AuthType     = AuthType.none
+    links: list[str]
+    auth_type: AuthType      = AuthType.none
     captcha_type: CaptchaType = CaptchaType.none
-    scraper: str            = "generic"
-    needs_js: bool          = False
+    scraper: str             = "generic"
+    needs_js: bool           = False
 
-    @field_validator("url", mode="before")
+    @field_validator("links", mode="before")
     @classmethod
-    def cast_to_str(cls, v):
-        return str(v)
+    def cast_to_str_list(cls, v):
+        return [str(item) for item in v]
 
-    @field_validator("url")
+    @field_validator("links")
     @classmethod
-    def ensure_scheme(cls, v: str) -> str:
-        # adiciona http:// se o usuário esquecer
-        if not v.startswith(("http://", "https://")):
-            v = "http://" + v
-        return v.rstrip("/")
+    def ensure_scheme(cls, values: list[str]) -> list[str]:
+        normalized = []
+        for url in values:
+            if not url.startswith(("http://", "https://")):
+                url = "http://" + url
+            normalized.append(url.rstrip("/"))
+        return normalized
 
 class SiteRead(SiteCreate):
     id: int
