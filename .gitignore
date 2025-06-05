@@ -35,3 +35,6 @@ next-env.d.ts
 .venv/
 __pycache__/
 *.pyc
+
+# Alermbic scripts
+backend/app/alembic/versions
