@@ -6,6 +6,9 @@ from schemas.leak_mongo import LeakDoc
 
 def test_leakdoc_example_present():
     config = getattr(LeakDoc, "model_config", LeakDoc.Config)
-    example = getattr(config, "json_schema_extra", None) or getattr(config, "schema_extra", None)
+    if isinstance(config, dict):
+        example = config.get("json_schema_extra") or config.get("schema_extra")
+    else:
+        example = getattr(config, "json_schema_extra", None) or getattr(config, "schema_extra", None)
     assert example and "example" in example
     assert example["example"]["site_id"] == 1

@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     SMTP_USER: str = "avisos@meudominio.com"
     SMTP_PASS: str = "senhaforte123!"
 
+    PASSWORD_MIN_LENGTH: int = 8
+    PASSWORD_REQUIRE_UPPERCASE: bool = True
+    PASSWORD_REQUIRE_LOWERCASE: bool = True
+    PASSWORD_REQUIRE_NUMBERS: bool = True
+    PASSWORD_REQUIRE_SYMBOLS: bool = True
+    SESSION_TIMEOUT_HOURS: int = 24
+    MAX_LOGIN_ATTEMPTS: int = 5
+    ACCOUNT_LOCKOUT_MINUTES: int = 30
+
     FRONTEND_URL: str = "http://localhost"
     STRIPE_API_KEY: str = ""
 
