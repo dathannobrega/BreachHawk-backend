@@ -10,3 +10,4 @@ from .company import Company
 from .login_history import LoginHistory
 from .user_session import UserSession
 from .smtp_config import SMTPConfig
+from .scrape_log import ScrapeLog
