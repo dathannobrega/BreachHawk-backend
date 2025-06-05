@@ -27,6 +27,7 @@ httpx
 motor
 itsdangerous
 stripe
+python-multipart
 
 #testes
 pytest-asyncio

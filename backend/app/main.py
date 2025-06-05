@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
     )
 
     # Serve static files
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.mount("./static", StaticFiles(directory="static"), name="static")
 
     # Inclui os routers
     app.include_router(auth.router,       prefix="/api/v1/auth",  tags=["auth"])
