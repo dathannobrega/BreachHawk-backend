@@ -26,7 +26,10 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     user = authenticate_user(db, identifier, data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
-    access_token = create_access_token({"sub": str(user.id)})
+
+    expires = 60 if user.status == "inactive" else None
+    access_token = create_access_token({"sub": str(user.id)}, expires_minutes=expires)
+
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 

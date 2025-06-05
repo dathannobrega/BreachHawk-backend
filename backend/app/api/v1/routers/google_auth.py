@@ -81,7 +81,8 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
             db.refresh(user)
 
     # Gera o JWT
-    jwt = create_access_token({"sub": str(user.id)})
+    expires = 60 if user.status == "inactive" else None
+    jwt = create_access_token({"sub": str(user.id)}, expires_minutes=expires)
 
 
     # Em vez de apenas "/login?token=...", usamos a URL completa do frontend
