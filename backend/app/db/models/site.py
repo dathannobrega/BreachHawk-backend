@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from db.base import Base
 import enum
 
@@ -25,5 +26,11 @@ class Site(Base):
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     scraper  = Column(String, default="generic", nullable=False)
     needs_js = Column(Boolean, default=False, nullable=False)
+
+    links = relationship(
+        "SiteLink",
+        back_populates="site",
+        cascade="all, delete-orphan",
+    )
 
 

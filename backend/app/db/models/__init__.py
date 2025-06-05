@@ -1,4 +1,5 @@
 from .site import Site
+from .site_link import SiteLink
 from .leak import Leak
 from .user import User
 from .password_reset import PasswordResetToken
