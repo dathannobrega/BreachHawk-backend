@@ -11,6 +11,7 @@ from db.models import Site
 from api.v1.deps import get_db
 
 from api.v1.deps import get_current_admin_user
+from scrapers import registry
 
 router = APIRouter()
 
@@ -33,11 +34,20 @@ def upload_scraper(
     with open(path, "wb") as out_file:
         out_file.write(file.file.read())
 
-    # importa o módulo para registrar no registry
-    spec = importlib.util.spec_from_file_location(filename[:-3], path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+    before = set(registry.keys())
+    try:
+        spec = importlib.util.spec_from_file_location(filename[:-3], path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+    except Exception as exc:
+        os.remove(path)
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    new_slugs = set(registry.keys()) - before
+    if not new_slugs:
+        os.remove(path)
+        raise HTTPException(status_code=400, detail="Scraper inválido")
 
     return {"msg": "scraper uploaded"}
 
@@ -47,6 +57,9 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), _admin=Depen
     # Verifica se algum dos links já está cadastrado
     if db.query(SiteLink).filter(SiteLink.url.in_(site_in.links)).first():
         raise HTTPException(400, "Link já cadastrado")
+
+    if site_in.scraper not in registry:
+        raise HTTPException(400, "Scraper desconhecido")
 
     data = {
         "url": site_in.links[0],
