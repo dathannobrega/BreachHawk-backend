@@ -1,6 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from datetime import datetime
 from core import token_utils, security, jwt as jwt_module
 
 
@@ -28,3 +29,15 @@ def test_create_access_token_contains_data():
     )
     assert decoded["sub"] == "user@example.com"
     assert "exp" in decoded
+
+
+def test_create_access_token_custom_expiry():
+    payload = {"sub": "42"}
+    token = jwt_module.create_access_token(payload, expires_minutes=60)
+    decoded = jwt_module.jwt.decode(
+        token, jwt_module.SECRET_KEY, algorithms=[jwt_module.ALGORITHM]
+    )
+    assert decoded["sub"] == "42"
+    exp = datetime.utcfromtimestamp(decoded["exp"])
+    remaining = (exp - datetime.utcnow()).total_seconds() / 60
+    assert 59 <= remaining <= 60
