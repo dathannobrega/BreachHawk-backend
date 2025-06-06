@@ -19,6 +19,7 @@ class Site(Base):
     __tablename__ = "sites"
 
     id           = Column(Integer, primary_key=True, index=True)
+    name         = Column(String, nullable=False)
     url          = Column(String, unique=True, nullable=False)
     auth_type    = Column(Enum(AuthType), default=AuthType.none)
     captcha_type = Column(Enum(CaptchaType), default=CaptchaType.none)
