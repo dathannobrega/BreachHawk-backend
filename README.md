@@ -163,12 +163,29 @@ GET /sites/tasks/{task_id} devolve {"inserted": X}
 Iniciar:
 ```bash
 alembic revision --autogenerate -m "first commit"
-alembic upgrade head 
+alembic upgrade head
 ```
 TOda vez que mudar algum model:
 ```bash
 alembic revision --autogenerate -m "first commit"
-alembic upgrade head 
+alembic upgrade head
+```
+## Password Policy API
+
+Endpoint público para consulta da política de senha.
+
+- `GET /api/v1/password-policy/public`
+
+Exemplo de resposta:
+
+```json
+{
+  "min_length": 8,
+  "require_uppercase": true,
+  "require_lowercase": true,
+  "require_numbers": true,
+  "require_symbols": true
+}
 ```
 ## Billing API
 
