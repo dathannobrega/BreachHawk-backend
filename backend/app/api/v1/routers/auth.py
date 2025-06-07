@@ -23,7 +23,14 @@ router = APIRouter()
 
 
 @router.post("/login", response_model=AuthResponse, tags=["auth"])
-def login(data: UserLogin, request: Request, db: Session = Depends(get_db)):
+def login(data: UserLogin, db: Session = Depends(get_db)):
+    """
+    Login endpoint. api/v1/auth/login
+
+    - Receives the user's email/username and password.
+    - If valid, resets failed login attempts, updates last login and creates a JWT.
+    - Returns the token, token type and authenticated user.
+    """
     identifier = data.email or data.username
     if not identifier:
         raise HTTPException(status_code=400, detail="Email ou username requerido")
@@ -69,6 +76,13 @@ def login(data: UserLogin, request: Request, db: Session = Depends(get_db)):
 
 @router.post("/register", response_model=AuthResponse, tags=["auth"])
 def register(data: UserCreate, db: Session = Depends(get_db)):
+    """
+    Registration endpoint. api/v1/auth/register
+
+    - Validates email/username uniqueness.
+    - Validates the provided password strength.
+    - Creates a new user, generates and returns a JWT.
+    """
     existing = db.query(User).filter(
         (User.email == data.email) | (User.username == data.username)
     ).first()
@@ -102,7 +116,11 @@ async def forgot_password(
     db: Session = Depends(get_db),
 ):
     """
-    Gera token de reset, salva no banco e dispara e-mail de recuperação em background.
+    Forgot Password endpoint. api/v1/auth/forgot-password
+
+    - Generates a password reset token if the email is registered.
+    - Schedules sending a reset email in the background.
+    - Always returns a success message to prevent information leakage.
     """
     user = db.query(User).filter_by(email=data.email).first()
     if not user:
@@ -122,7 +140,6 @@ async def forgot_password(
     db.commit()
 
     reset_link = f"https://dev.protexion.cloud/reset-password?token={token}"
-    # Agora passamos também o user.email (ou user.name, se existir um campo de nome no model)
     background_tasks.add_task(send_password_reset_email, user.email, reset_link, user.email)
 
     return {"message": "Se o e-mail estiver cadastrado, você receberá instruções para redefinir a senha."}
@@ -134,7 +151,11 @@ def reset_password(
     db: Session = Depends(get_db),
 ):
     """
-    Verifica o token, redefine a senha e remove o token do DB.
+    Reset Password endpoint. api/v1/auth/reset-password
+
+    - Validates the reset token and its expiration.
+    - Validates the strength of the new password.
+    - Updates the user's password and removes the used token.
     """
     token_obj = db.query(PasswordResetToken).filter_by(token=data.token).first()
     if not token_obj or token_obj.expires_at < datetime.now(timezone.utc):
@@ -162,7 +183,11 @@ def change_password(
     db: Session = Depends(get_db),
 ):
     """
-    Alteração de senha já logado: valida a senha antiga e muda para a nova.
+    Change Password endpoint (authenticated users). api/v1/auth/change-password
+
+    - Verifies the old password.
+    - Validates and updates the password.
+    - Returns a success message on completion.
     """
     if not verify_password(data.old_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Senha antiga incorreta")
@@ -178,7 +203,11 @@ def change_password(
 
 @router.get("/me", response_model=UserOut, tags=["auth"])
 def read_current_user(current_user: User = Depends(get_current_user)):
-    """Retorna os dados do usuário autenticado."""
+    """
+    Get Current User endpoint. api/v1/auth/me
+
+    - Retrieves the authenticated user's profile.
+    """
     return current_user
 
 
@@ -187,16 +216,32 @@ from schemas import LoginHistoryRead, UserSessionRead
 
 @router.get("/login-history", response_model=List[LoginHistoryRead], tags=["auth"])
 def get_login_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Login History endpoint. api/v1/auth/login-history
+
+    - Returns a list of login history records for the current user, ordered by most recent.
+    """
     return db.query(LoginHistory).filter_by(user_id=current_user.id).order_by(LoginHistory.timestamp.desc()).all()
 
 
 @router.get("/sessions", response_model=List[UserSessionRead], tags=["auth"])
 def get_sessions(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Get Sessions endpoint. api/v1/auth/sessions
+
+    - Retrieves all active sessions for the authenticated user.
+    """
     return db.query(UserSession).filter_by(user_id=current_user.id).order_by(UserSession.created_at.desc()).all()
 
 
 @router.delete("/sessions/{session_id}", tags=["auth"])
 def delete_session(session_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Delete Session endpoint. api/v1/auth/sessions/{session_id}
+
+    - Deletes a specific user session for the current authenticated user.
+    - Returns a success confirmation.
+    """
     session = db.query(UserSession).filter_by(id=session_id, user_id=current_user.id).first()
     if session:
         db.delete(session)
