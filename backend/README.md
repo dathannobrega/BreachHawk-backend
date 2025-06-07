@@ -115,6 +115,7 @@ Classe base declarativa utilizada por todos os modelos.
 * `site.py`: Modelo dos sites monitorados.
 * `snapshot.py`: Modelo de snapshot de conteúdo encontrado.
 * `user.py`: Modelo dos usuários da plataforma.
+* `telegram_account.py`: Credenciais da API do Telegram.
 
 ---
 
@@ -143,6 +144,33 @@ Responsáveis por buscar dados em fontes específicas (ex: fóruns ou blogs na d
 * `akira_cli.py`: Scraper específico para o grupo de ransomware Akira.
 * `ransomhouse.py`: Scraper do grupo RansomHouse.
 * `init.py`: Scraper genérico para sites customizados.
+* `telegram.py`: Coleta mensagens de grupos no Telegram.
+
+---
+
+### Padronização dos scrapers
+
+Todos os scrapers devem herdar de `ScraperBase`, definir um `slug` único e implementar
+o método `scrape(site, db)` que retorna uma lista de dicionários ou objetos
+`LeakDoc`. Os plugins são registrados automaticamente via `__init_subclass__` e
+pode-se executá-los pelo `registry[slug]`.
+
+Estrutura básica recomendada:
+
+```python
+from scrapers.base import ScraperBase
+
+class MyScraper(ScraperBase):
+    slug = "meu_slug"
+
+    def scrape(self, site, db):
+        # sua lógica aqui
+        return []
+```
+
+O scraper `telegram.py` utiliza a biblioteca **Telethon** e lê as credenciais
+(`api_id`, `api_hash` e `session_string`) a partir da tabela `telegram_accounts`,
+relacionada ao site.
 
 ---
 
