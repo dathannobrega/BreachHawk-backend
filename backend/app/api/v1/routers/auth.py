@@ -40,7 +40,7 @@ def login(
         raise HTTPException(status_code=400, detail="Email ou username requerido")
     user = db.query(User).filter((User.email == identifier) | (User.username == identifier)).first()
 
-    client_ip = get_client_ip(request)
+    ip = get_client_ip(request)
 
     device = request.headers.get("user-agent")
     location = get_location_from_ip(ip)
