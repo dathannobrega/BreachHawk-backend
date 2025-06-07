@@ -19,7 +19,6 @@ class PasswordPolicyRead(BaseModel):
                 "require_symbols": True,
             }
         }
-        schema_extra = json_schema_extra
 
 class PasswordPolicyUpdate(BaseModel):
     min_length: int

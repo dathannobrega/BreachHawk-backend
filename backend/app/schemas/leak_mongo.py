@@ -31,5 +31,3 @@ class LeakDoc(BaseModel):
                 "download_links": ["magnet:?xt=urn:btih:..."]
             }
         }
-        # backward compatibility with Pydantic v1
-        schema_extra = json_schema_extra
