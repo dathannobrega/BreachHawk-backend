@@ -10,6 +10,16 @@ class PasswordPolicyRead(BaseModel):
 
     class Config:
         from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "min_length": 8,
+                "require_uppercase": True,
+                "require_lowercase": True,
+                "require_numbers": True,
+                "require_symbols": True,
+            }
+        }
+        schema_extra = json_schema_extra
 
 class PasswordPolicyUpdate(BaseModel):
     min_length: int
