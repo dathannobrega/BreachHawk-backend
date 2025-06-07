@@ -1,5 +1,4 @@
 # backend/app/api/v1/routers/auth.py
-
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from core.jwt import create_access_token
@@ -18,12 +17,17 @@ from schemas.password_reset import ForgotPasswordRequest, ResetPasswordRequest
 
 import secrets
 from datetime import datetime, timedelta, timezone
+from utils.get_ip import get_client_ip
 
 router = APIRouter()
 
 
 @router.post("/login", response_model=AuthResponse, tags=["auth"])
-def login(data: UserLogin, db: Session = Depends(get_db)):
+def login(
+    data: UserLogin,
+    request: Request,
+    db: Session = Depends(get_db),
+):
     """
     Login endpoint. api/v1/auth/login
 
@@ -36,7 +40,8 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email ou username requerido")
     user = db.query(User).filter((User.email == identifier) | (User.username == identifier)).first()
 
-    ip = request.client.host if request.client else None
+    client_ip = get_client_ip(request)
+
     device = request.headers.get("user-agent")
     location = get_location_from_ip(ip)
     now = datetime.now(timezone.utc)
