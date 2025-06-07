@@ -1,9 +1,18 @@
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from api.v1.deps import get_db, get_current_platform_admin_user
-from schemas.platform_user import PlatformUserCreate, PlatformUserRead, PlatformUserUpdate
+from schemas.platform_user import (
+    PlatformUserCreate,
+    PlatformUserRead,
+    PlatformUserUpdate,
+)
+from schemas import LoginHistoryRead, UserSessionRead
 from db.models.user import User
+from db.models.login_history import LoginHistory
+from db.models.user_session import UserSession
 from core.security import get_password_hash
 
 router = APIRouter(prefix="/platform-users", tags=["platform_users"])
@@ -62,3 +71,37 @@ def delete_user(user_id: int, db: Session = Depends(get_db), _=Depends(get_curre
     db.delete(user)
     db.commit()
     return None
+
+
+@router.get("/{user_id}/login-history", response_model=List[LoginHistoryRead])
+def get_user_login_history(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_platform_admin_user),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return (
+        db.query(LoginHistory)
+        .filter(LoginHistory.user_id == user_id)
+        .order_by(LoginHistory.timestamp.desc())
+        .all()
+    )
+
+
+@router.get("/{user_id}/sessions", response_model=List[UserSessionRead])
+def get_user_sessions(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_platform_admin_user),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return (
+        db.query(UserSession)
+        .filter(UserSession.user_id == user_id)
+        .order_by(UserSession.created_at.desc())
+        .all()
+    )
