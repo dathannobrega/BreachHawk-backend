@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from api.v1.deps import get_db
 from db.models.login_history import LoginHistory
 from db.models.user_session import UserSession
+from services.geo_service import get_location_from_ip
 from datetime import datetime, timedelta, timezone
 from core.jwt import create_access_token
 from db.models.user import User
@@ -89,8 +90,11 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
 
     now = datetime.now(timezone.utc)
     user.last_login = now
-    db.add(LoginHistory(user_id=user.id, timestamp=now))
-    db.add(UserSession(user_id=user.id, token=jwt, expires_at=now + timedelta(minutes=expires or 30)))
+    ip = request.client.host if request.client else None
+    device = request.headers.get("user-agent")
+    location = get_location_from_ip(ip)
+    db.add(LoginHistory(user_id=user.id, timestamp=now, device=device, ip_address=ip, location=location, success=True))
+    db.add(UserSession(user_id=user.id, token=jwt, device=device, ip_address=ip, location=location, expires_at=now + timedelta(minutes=expires or 30)))
     db.commit()
     db.refresh(user)
 

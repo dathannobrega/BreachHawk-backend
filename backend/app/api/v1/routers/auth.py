@@ -1,6 +1,6 @@
 # backend/app/api/v1/routers/auth.py
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from core.jwt import create_access_token
 from core.security import get_password_hash, verify_password
@@ -8,6 +8,7 @@ from services.password_policy import validate_password
 from core.config import settings
 from api.v1.deps import get_db, get_current_user
 from services.email_service import send_password_reset_email
+from services.geo_service import get_location_from_ip
 from db.models.user import User
 from db.models.password_reset import PasswordResetToken
 from db.models.login_history import LoginHistory
@@ -22,15 +23,21 @@ router = APIRouter()
 
 
 @router.post("/login", response_model=AuthResponse, tags=["auth"])
-def login(data: UserLogin, db: Session = Depends(get_db)):
+def login(data: UserLogin, request: Request, db: Session = Depends(get_db)):
     identifier = data.email or data.username
     if not identifier:
         raise HTTPException(status_code=400, detail="Email ou username requerido")
     user = db.query(User).filter((User.email == identifier) | (User.username == identifier)).first()
+
+    ip = request.client.host if request.client else None
+    device = request.headers.get("user-agent")
+    location = get_location_from_ip(ip)
+    now = datetime.now(timezone.utc)
     if not user:
+        db.add(LoginHistory(user_id=None, timestamp=now, device=device, ip_address=ip, location=location, success=False))
+        db.commit()
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-    now = datetime.now(timezone.utc)
     if user.lockout_until and user.lockout_until > now:
         raise HTTPException(status_code=403, detail="Conta bloqueada")
 
@@ -39,6 +46,7 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
         if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
             user.lockout_until = now + timedelta(minutes=settings.ACCOUNT_LOCKOUT_MINUTES)
             user.failed_login_attempts = 0
+        db.add(LoginHistory(user_id=user.id, timestamp=now, device=device, ip_address=ip, location=location, success=False))
         db.commit()
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
@@ -51,8 +59,8 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     # update last login and record history
     now = datetime.now(timezone.utc)
     user.last_login = now
-    db.add(LoginHistory(user_id=user.id, timestamp=now))
-    db.add(UserSession(user_id=user.id, token=access_token, expires_at=now + timedelta(minutes=expires_minutes)))
+    db.add(LoginHistory(user_id=user.id, timestamp=now, device=device, ip_address=ip, location=location, success=True))
+    db.add(UserSession(user_id=user.id, token=access_token, device=device, ip_address=ip, location=location, expires_at=now + timedelta(minutes=expires_minutes)))
     db.commit()
     db.refresh(user)
 
