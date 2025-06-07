@@ -94,6 +94,8 @@ Plataforma de threat hunting para monitoramento e coleta automatizada de vazamen
 1. `POST /api/v1/auth/register` → Criação de usuário
 2. `POST /api/v1/auth/login` → JWT
 3. `GET /api/v1/auth/me` → Requisição autenticada com `Bearer <token>`
+4. `GET /api/v1/auth/sessions` → Lista sessões do usuário (inclui device e localização)
+5. `GET /api/v1/auth/login-history` → Histórico de logins (device, IP, localização e sucesso)
 
 ---
 
