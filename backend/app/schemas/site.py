@@ -1,5 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, field_validator
+from typing import Optional
 
 class AuthType(str, Enum):
     none  = "none"
@@ -12,13 +13,33 @@ class CaptchaType(str, Enum):
     math    = "math"
     rotated = "rotated"
 
+class SiteType(str, Enum):
+    forum = "forum"
+    website = "website"
+    telegram = "telegram"
+    discord = "discord"
+    paste = "paste"
+
+class BypassConfig(BaseModel):
+    useProxies: bool
+    rotateUserAgent: bool
+    captchaSolver: Optional[str] = None
+
+class Credentials(BaseModel):
+    username: str
+    password: str
+    token: Optional[str] = None
+
 class SiteCreate(BaseModel):
     name: str
     links: list[str]
+    type: SiteType = SiteType.website
     auth_type: AuthType      = AuthType.none
     captcha_type: CaptchaType = CaptchaType.none
     scraper: str             = "generic"
     needs_js: bool           = False
+    bypassConfig: BypassConfig | None = None
+    credentials: Credentials | None = None
 
     @field_validator("links", mode="before")
     @classmethod
@@ -44,10 +65,13 @@ class SiteRead(SiteCreate):
 class SiteUpdate(BaseModel):
     name: str | None = None
     links: list[str] | None = None
+    type: SiteType | None = None
     auth_type: AuthType | None = None
     captcha_type: CaptchaType | None = None
     scraper: str | None = None
     needs_js: bool | None = None
+    bypassConfig: BypassConfig | None = None
+    credentials: Credentials | None = None
 
     @field_validator("links", mode="before")
     @classmethod

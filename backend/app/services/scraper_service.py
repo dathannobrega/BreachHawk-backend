@@ -15,7 +15,7 @@ from schemas.leak_mongo import LeakDoc
 
 logger = logging.getLogger(__name__)
 
-def run_scraper_for_site(site, db: Session) -> int:
+def run_scraper_for_site(site, db: Session, payload: dict | None = None) -> int:
     """Executa o scraper tentando cada link cadastrado."""
     if not site.enabled:
         logger.info("Site %s está desabilitado, pulando.", site.url)
@@ -37,7 +37,26 @@ def run_scraper_for_site(site, db: Session) -> int:
                     id=site.id,
                     url=url,
                     telegram_account=getattr(site, "telegram_account", None),
+                    type=getattr(site, "type", None),
+                    bypassConfig=None,
+                    credentials=None,
                 )
+                if getattr(site, "bypass_config", None):
+                    try:
+                        import json
+                        site_data.bypassConfig = json.loads(site.bypass_config)
+                    except Exception:
+                        site_data.bypassConfig = None
+                if getattr(site, "credentials", None):
+                    try:
+                        import json
+                        site_data.credentials = json.loads(site.credentials)
+                    except Exception:
+                        site_data.credentials = None
+                if payload:
+                    site_data.type = payload.get("type", site_data.type)
+                    site_data.bypassConfig = payload.get("bypassConfig", site_data.bypassConfig)
+                    site_data.credentials = payload.get("credentials", site_data.credentials)
                 raw_leaks = scraper.scrape(site_data, db)
                 inserted = 0
 

@@ -15,7 +15,7 @@ from scrapers import registry
 from db.models.scrape_log import ScrapeLog
 from schemas.scrape_log import ScrapeLogRead
 
-router = APIRouter()
+router = APIRouter(prefix="/admin/sites")
 
 
 @router.post("/upload-scraper", status_code=201, tags=["Sites"])
@@ -85,6 +85,7 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), _admin=Depen
     if site_in.scraper not in registry:
         raise HTTPException(400, "Scraper desconhecido")
 
+    import json
     data = {
         "name": site_in.name,
         "url": site_in.links[0],
@@ -92,6 +93,9 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), _admin=Depen
         "captcha_type": site_in.captcha_type,
         "scraper": site_in.scraper,
         "needs_js": site_in.needs_js,
+        "type": site_in.type,
+        "bypass_config": json.dumps(site_in.bypassConfig.model_dump()) if site_in.bypassConfig else None,
+        "credentials": json.dumps(site_in.credentials.model_dump()) if site_in.credentials else None,
     }
     site = Site(**data)
     db.add(site)
@@ -102,15 +106,26 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), _admin=Depen
     db.commit(); db.refresh(site)
 
     site_links = [sl.url for sl in site.links]
-    return SiteRead(id=site.id, name=site.name, links=site_links,
-                    auth_type=site.auth_type,
-                    captcha_type=site.captcha_type,
-                    scraper=site.scraper,
-                    needs_js=site.needs_js)
+    import json
+    bypass = json.loads(site.bypass_config) if site.bypass_config else None
+    creds = json.loads(site.credentials) if site.credentials else None
+    return SiteRead(
+        id=site.id,
+        name=site.name,
+        links=site_links,
+        auth_type=site.auth_type,
+        captcha_type=site.captcha_type,
+        scraper=site.scraper,
+        needs_js=site.needs_js,
+        type=site.type,
+        bypassConfig=bypass,
+        credentials=creds,
+    )
 
 
 @router.get("/", response_model=list[SiteRead])
 def list_sites(db: Session = Depends(get_db), _admin=Depends(get_current_admin_user)):
+    import json
     sites = db.query(Site).all()
     result = []
     for site in sites:
@@ -124,6 +139,9 @@ def list_sites(db: Session = Depends(get_db), _admin=Depends(get_current_admin_u
                 captcha_type=site.captcha_type,
                 scraper=site.scraper,
                 needs_js=site.needs_js,
+                type=site.type,
+                bypassConfig=json.loads(site.bypass_config) if site.bypass_config else None,
+                credentials=json.loads(site.credentials) if site.credentials else None,
             )
         )
     return result
@@ -138,7 +156,17 @@ def run_scraper_now(
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
 
-    async_res = celery_app.send_task("scrape_site", args=[site_id])
+    import json
+    bypass = json.loads(site.bypass_config) if site.bypass_config else None
+    creds = json.loads(site.credentials) if site.credentials else None
+    payload = {
+        "siteId": site.id,
+        "type": site.type.value if hasattr(site.type, "value") else site.type,
+        "url": site.url,
+        "bypassConfig": bypass,
+        "credentials": creds,
+    }
+    async_res = celery_app.send_task("scrape_site", args=[payload])
     return TaskResponse(task_id=async_res.id, status=async_res.state)
 
 
@@ -181,11 +209,18 @@ def update_site(
             db.query(SiteLink).filter(SiteLink.site_id == site_id).delete()
             for link in value:
                 db.add(SiteLink(site_id=site_id, url=link))
+        elif field == "bypassConfig":
+            import json
+            setattr(site, "bypass_config", json.dumps(value) if value else None)
+        elif field == "credentials":
+            import json
+            setattr(site, "credentials", json.dumps(value) if value else None)
         else:
             setattr(site, field, value)
     db.add(site)
     db.commit(); db.refresh(site)
     links = [l.url for l in site.links]
+    import json
     return SiteRead(
         id=site.id,
         name=site.name,
@@ -194,6 +229,9 @@ def update_site(
         captcha_type=site.captcha_type,
         scraper=site.scraper,
         needs_js=site.needs_js,
+        type=site.type,
+        bypassConfig=json.loads(site.bypass_config) if site.bypass_config else None,
+        credentials=json.loads(site.credentials) if site.credentials else None,
     )
 
 
@@ -229,6 +267,7 @@ def add_site_url(
     db.add(SiteLink(site_id=site_id, url=url))
     db.commit(); db.refresh(site)
     links = [l.url for l in site.links]
+    import json
     return SiteRead(
         id=site.id,
         name=site.name,
@@ -237,6 +276,9 @@ def add_site_url(
         captcha_type=site.captcha_type,
         scraper=site.scraper,
         needs_js=site.needs_js,
+        type=site.type,
+        bypassConfig=json.loads(site.bypass_config) if site.bypass_config else None,
+        credentials=json.loads(site.credentials) if site.credentials else None,
     )
 
 
