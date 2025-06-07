@@ -14,3 +14,4 @@ class Plan(Base):
     scope = Column(Enum(PlanScope), nullable=False)
     max_monitored_items = Column(Integer, nullable=False)
     max_users = Column(Integer, nullable=True)
+    max_searches = Column(Integer, nullable=True)
