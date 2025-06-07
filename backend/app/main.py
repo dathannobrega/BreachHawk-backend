@@ -18,6 +18,7 @@ from api.v1.routers import (
     platform_users,
     smtp_config,
     password_policy,
+    plans,
 )
 from db.mongodb import init_mongo_indexes
 from core.logging_conf import configure_logging
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(platform_users.router, prefix="/api/v1", tags=["platform_users"])
     app.include_router(smtp_config.router, prefix="/api/v1", tags=["smtp"])
     app.include_router(password_policy.router, prefix="/api/v1", tags=["password"])
+    app.include_router(plans.router, prefix="/api/v1", tags=["plans"])
 
 
     # Health check
