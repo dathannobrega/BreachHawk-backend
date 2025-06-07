@@ -13,3 +13,4 @@ from .smtp_config import SMTPConfig
 from .scrape_log import ScrapeLog
 from .password_policy import PasswordPolicy
 from .plan import Plan
+from .telegram_account import TelegramAccount

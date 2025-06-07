@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     TOR_RETRY_INTERVAL: float    = 5.0    # segundos entre tentativas
     TOR_PROXY: str = "socks5://tor:9050"
 
+
     SMTP_HOST: str = "smtp.seuservidor.com"
     SMTP_PORT: int = 587
     SMTP_USER: str = "avisos@meudominio.com"

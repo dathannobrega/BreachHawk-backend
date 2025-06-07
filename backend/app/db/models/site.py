@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from db.base import Base
@@ -27,6 +27,9 @@ class Site(Base):
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     scraper  = Column(String, default="generic", nullable=False)
     needs_js = Column(Boolean, default=False, nullable=False)
+    telegram_account_id = Column(Integer, ForeignKey("telegram_accounts.id"), nullable=True)
+
+    telegram_account = relationship("TelegramAccount")
 
     links = relationship(
         "SiteLink",

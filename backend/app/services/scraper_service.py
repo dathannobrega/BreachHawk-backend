@@ -33,7 +33,11 @@ def run_scraper_for_site(site, db: Session) -> int:
 
         for attempt in range(1, max_retries + 2):
             try:
-                site_data = types.SimpleNamespace(id=site.id, url=url)
+                site_data = types.SimpleNamespace(
+                    id=site.id,
+                    url=url,
+                    telegram_account=getattr(site, "telegram_account", None),
+                )
                 raw_leaks = scraper.scrape(site_data, db)
                 inserted = 0
 

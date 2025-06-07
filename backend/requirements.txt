@@ -28,6 +28,7 @@ motor
 itsdangerous
 stripe
 python-multipart
+telethon
 
 #testes
 pytest-asyncio
