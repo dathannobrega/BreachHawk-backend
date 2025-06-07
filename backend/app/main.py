@@ -19,6 +19,7 @@ from api.v1.routers import (
     smtp_config,
     password_policy,
     plans,
+    scraper_config,
 )
 from db.mongodb import init_mongo_indexes
 from core.logging_conf import configure_logging
@@ -73,6 +74,7 @@ def create_app() -> FastAPI:
     app.include_router(smtp_config.router, prefix="/api/v1", tags=["smtp"])
     app.include_router(password_policy.router, prefix="/api/v1", tags=["password"])
     app.include_router(plans.router, prefix="/api/v1", tags=["plans"])
+    app.include_router(scraper_config.router, prefix="/api/v1", tags=["scraper-configs"])
 
 
     # Health check

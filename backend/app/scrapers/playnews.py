@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright, Error as PwError
 
-from scrapers.base import ScraperBase
+from scrapers.base import BaseScraper
 
 TOPIC_RX = re.compile(r"viewtopic\('([^']+)'\)")
 
-class PlayNewsScraper(ScraperBase):
+class PlayNewsScraper(BaseScraper):
     slug = "playnews"
 
     def scrape(self, site, db) -> list[dict]:
