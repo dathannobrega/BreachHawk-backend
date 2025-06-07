@@ -40,11 +40,12 @@ def _fail(task, msg: str, exc_cls: str = "ValueError"):
     raise Ignore()
 
 @celery_app.task(bind=True, name="scrape_site")
-def scrape_site(self, site_id: int) -> dict:
+def scrape_site(self, payload: dict) -> dict:
     """
     Executa o scraper para um site específico e retorna {"inserted": N}.
     """
     # Em vez de usar 'with logger.bind(...)', vinculamos o logger explicitamente
+    site_id = payload.get("siteId") if isinstance(payload, dict) else payload
     bound_logger = logger.bind(task="scrape_site", site_id=site_id)
 
     with SessionLocal() as db:
@@ -53,7 +54,7 @@ def scrape_site(self, site_id: int) -> dict:
             return _fail(self, "Site não encontrado ou desabilitado")
 
         try:
-            inserted = run_scraper_for_site(site, db)
+            inserted = run_scraper_for_site(site, db, payload)
             return {"inserted": inserted}
 
         except Exception as exc:
