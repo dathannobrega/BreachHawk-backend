@@ -11,6 +11,7 @@ class PlanBase(BaseModel):
     scope: PlanScope
     max_monitored_items: int
     max_users: Optional[int] = None
+    max_searches: Optional[int] = None
 
 class PlanCreate(PlanBase):
     pass
@@ -20,6 +21,7 @@ class PlanUpdate(BaseModel):
     scope: Optional[PlanScope] = None
     max_monitored_items: Optional[int] = None
     max_users: Optional[int] = None
+    max_searches: Optional[int] = None
 
 class PlanRead(PlanBase):
     id: int
