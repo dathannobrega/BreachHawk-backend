@@ -93,7 +93,7 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="E-mail ou usuário já cadastrado")
-    error = validate_password(data.password)
+    error = validate_password(data.password, db)
     if error:
         raise HTTPException(status_code=400, detail=error)
     new_user = User(
@@ -170,7 +170,7 @@ def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    error = validate_password(data.new_password)
+    error = validate_password(data.new_password, db)
     if error:
         raise HTTPException(status_code=400, detail=error)
 
@@ -197,7 +197,7 @@ def change_password(
     if not verify_password(data.old_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Senha antiga incorreta")
 
-    error = validate_password(data.new_password)
+    error = validate_password(data.new_password, db)
     if error:
         raise HTTPException(status_code=400, detail=error)
 
