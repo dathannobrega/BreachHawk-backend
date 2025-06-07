@@ -1,41 +1,33 @@
 from __future__ import annotations
-import asyncio
-from datetime import timezone
-from typing import List
-from telethon import TelegramClient
-from .base import ScraperBase
+from datetime import datetime, timezone
+from typing import List, Dict
+from bs4 import BeautifulSoup
 
-class TelegramScraper(ScraperBase):
-    """Scraper que coleta mensagens de canais ou grupos do Telegram."""
+from .base import BaseScraper
+
+class TelegramScraper(BaseScraper):
+    """Scraper que coleta mensagens de canais do Telegram via HTML."""
     slug = "telegram"
 
-    async def _scrape_async(self, site, account) -> List[dict]:
-        client = TelegramClient(
-            account.session_string or "scraper",
-            account.api_id,
-            account.api_hash,
-        )
-        await client.start()
-        entity = await client.get_entity(site.url)
-        leaks = []
-        async for msg in client.iter_messages(entity, limit=50):
-            if not msg.message:
+    def parse(self, html: str) -> List[Dict]:
+        soup = BeautifulSoup(html, "html.parser")
+        leaks: List[Dict] = []
+        for msg in soup.select("div.tgme_widget_message"):
+            text_el = msg.select_one(".tgme_widget_message_text")
+            if not text_el:
                 continue
+            msg_id = msg.get("data-post", "").split("/")[-1]
+            timestamp_el = msg.select_one("time")
+            found_at = datetime.now(timezone.utc)
+            if timestamp_el and timestamp_el.has_attr("datetime"):
+                try:
+                    found_at = datetime.fromisoformat(timestamp_el["datetime"])
+                except Exception:
+                    pass
             leaks.append({
-                "site_id": site.id,
                 "company": "telegram",
-                "source_url": f"https://t.me/{site.url}/{msg.id}",
-                "found_at": msg.date.replace(tzinfo=timezone.utc),
-                "information": msg.message,
+                "information": text_el.get_text(strip=True),
+                "source_url": f"https://t.me/{msg_id}" if msg_id else None,
+                "found_at": found_at,
             })
-        await client.disconnect()
         return leaks
-
-    def scrape(self, site, db) -> List[dict]:
-        account = getattr(site, "telegram_account", None)
-        if not account:
-            return []
-        try:
-            return asyncio.run(self._scrape_async(site, account))
-        except Exception:
-            return []

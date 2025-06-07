@@ -9,9 +9,7 @@ from .base import registry          # ← use APENAS esta linha ‼
 # registry: dict[str, "ScraperBase"] = {}
 
 # Importes dos plugins apenas para side‑effect
-from .akira_cli import AkiraCLIScraper        # noqa: F401
 from .ransomhouse import RansomHouseScraper   # noqa: F401
-from .playnews import PlayNewsScraper   # noqa: F401
 from .telegram import TelegramScraper   # noqa: F401
 
 # Carrega scrapers enviados via upload
