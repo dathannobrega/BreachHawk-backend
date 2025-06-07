@@ -1,4 +1,4 @@
-from . import auth, google_auth, leaks, sites, snapshots, marketing, users, billing, companies, platform_users, smtp_config
+from . import auth, google_auth, leaks, sites, snapshots, marketing, users, billing, companies, platform_users, smtp_config, password_policy
 
 __all__ = [
     "auth",
@@ -12,4 +12,5 @@ __all__ = [
     "companies",
     "platform_users",
     "smtp_config",
+    "password_policy",
 ]
