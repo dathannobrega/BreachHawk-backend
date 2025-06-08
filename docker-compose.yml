@@ -36,7 +36,7 @@ services:
     build:
       context: .
       dockerfile: worker/Dockerfile
-    command: celery -A celery_app worker -Ofair -l info
+    command: celery -A breachhawk.celery worker -Ofair -l info
     depends_on:
       - backend
       - redis
@@ -51,7 +51,7 @@ services:
     build:
       context: .
       dockerfile: worker/Dockerfile
-    command: celery -A celery_app beat -l info
+    command: celery -A breachhawk.celery beat -l info
     env_file:
       - .env
     depends_on:
