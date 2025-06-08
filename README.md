@@ -1,6 +1,51 @@
 # 🛡️ BreachHawk — Plataforma de Threat Intelligence na Dark Web
 
-Plataforma de threat hunting para monitoramento e coleta automatizada de vazamentos na deep/dark web, com scraping agendado, autenticação JWT e interface administrativa.
+Este backend agora utiliza totalmente o **Django** e o **Django REST Framework** para prover a API de monitoramento de vazamentos.
+```bash
+cd backend/django_project
+python manage.py runserver
+```
+
+---
+
+### 📁 Estrutura do projeto Django
+
+```
+backend/django_project
+├── manage.py
+├── breachhawk/
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── accounts/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── views.py
+│   └── urls.py
+├── billing/
+│   └── ...
+├── companies/
+│   └── ...
+├── leaks/
+│   └── ...
+├── notifications/
+│   └── ...
+├── scrapers/
+│   └── ...
+├── sites/
+│   └── ...
+└── templates/
+    └── emails/
+├── utils/
+│   └── common helpers like TOR circuit renewal
+```
 
 ---
 
@@ -61,9 +106,9 @@ Plataforma de threat hunting para monitoramento e coleta automatizada de vazamen
 
 ### 🧱 Arquitetura
 
-* **FastAPI + PostgreSQL + Celery**
+* **Django + PostgreSQL + Celery**
 * **Clean Architecture**: separação entre `api`, `services`, `repository`, `db`, `schemas`.
-* **Boas práticas**: PEP 8, SOLID, tipagem estática, logging estruturado.
+* **Django + PostgreSQL + Celery**
 * **Segurança**:
 
   * Autenticação via JWT
@@ -80,7 +125,7 @@ Plataforma de threat hunting para monitoramento e coleta automatizada de vazamen
 
 | Serviço       | Descrição                                   |
 | ------------- | ------------------------------------------- |
-| **backend**   | API FastAPI com Uvicorn                     |
+| **backend**   | API Django com Gunicorn                     |
 | **db**        | PostgreSQL persistente                      |
 | **mongo**     | Banco NoSQL para armazenar leaks            |
 | **worker**    | Celery worker (para scraping assíncrono)    |
@@ -143,9 +188,9 @@ Plataforma de threat hunting para monitoramento e coleta automatizada de vazamen
 ---
 Arquivos que agora contêm cada peça
 Arquivo	Responsabilidade
-backend/scrapers/base.py	Classe‐base + registry (já mostrado).
-backend/scrapers/akira_cli.py	Plugin específico com import tardio de Leak.
-backend/celery_app.py (ou services/scraper_dispatch.py)	Dispatcher e tarefas Celery.
+backend/django_project/scrapers/base.py	Classe‐base + registry (já mostrado).
+backend/django_project/scrapers/akira_cli.py	Plugin específico com import tardio de Leak.
+backend/django_project/breachhawk/celery.py	Dispatcher e tarefas Celery.
 backend/api/v1/routers/sites.py	Endpoints /sites, /sites/{id}/run, /sites/tasks/{task} que chamam a task Celery.
 
 5 . Fluxo final

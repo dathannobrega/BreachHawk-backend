@@ -4,7 +4,7 @@ Este documento descreve a estrutura do backend da aplicação, com detalhes sobr
 
 ## Visão Geral
 
-A aplicação é uma API construída em **FastAPI**, com integração ao **Celery** para tarefas assíncronas, **SQLAlchemy** como ORM, **Alembic** para migrações, e um sistema de scrapers para coleta de dados da dark web (TOR). O projeto também possui autenticação baseada em **JWT**.
+A aplicação originalmente utilizava **FastAPI** e **SQLAlchemy**. Na migração atual passamos a usar **Django** e o ORM nativo do framework, mantendo o **Celery** para tarefas assíncronas e o sistema de scrapers voltado à dark web (TOR). A autenticação continua baseada em **JWT**.
 
 ---
 
@@ -16,9 +16,7 @@ A aplicação é uma API construída em **FastAPI**, com integração ao **Celer
 ├── requirements.txt
 └── app/
     ├── .env
-    ├── alembic.ini
     ├── celery_app.py
-    ├── init_db.py
     ├── main.py
     ├── __init__.py
     ├── api/
@@ -40,17 +38,10 @@ A aplicação é uma API construída em **FastAPI**, com integração ao **Celer
 
 Contém variáveis de ambiente como URL do banco, chave JWT, configurações do Celery, etc.
 
-### `alembic.ini`
-
-Arquivo de configuração do Alembic para realizar migrações no banco.
-
 ### `celery_app.py`
 
 Inicializa a instância do Celery. Define o backend e o broker para processamento assíncrono de tarefas (ex: scraping).
 
-### `init_db.py`
-
-Script utilizado para criar as tabelas no banco com base nos modelos definidos.
 
 ### `main.py`
 
@@ -81,7 +72,8 @@ Lógica de configuração e segurança da aplicação.
 
 ### `config.py`
 
-Carrega as configurações a partir do `.env` usando `pydantic.BaseSettings`.
+Versão legada baseada em `pydantic`.
+Atualmente as configurações são lidas diretamente pelo `settings.py` do Django.
 
 ### `jwt.py`
 
@@ -93,7 +85,8 @@ Configuração de logs estruturados para a aplicação.
 
 ### `security.py`
 
-Funções auxiliares para hashing de senhas, geração de tokens, etc.
+Implementação antiga que utilizava `bcrypt` via Passlib.
+A migração para Django passou a utilizar os hashers nativos do framework.
 
 ---
 
@@ -101,21 +94,7 @@ Funções auxiliares para hashing de senhas, geração de tokens, etc.
 
 Gerencia a conexão e modelos do banco de dados.
 
-### `session.py`
-
-Criação da `SessionLocal` para comunicação com o banco via SQLAlchemy.
-
-### `base.py`
-
-Classe base declarativa utilizada por todos os modelos.
-
-### `models/`
-
-* `leak.py`: Modelo dos vazamentos detectados.
-* `site.py`: Modelo dos sites monitorados.
-* `snapshot.py`: Modelo de snapshot de conteúdo encontrado.
-* `user.py`: Modelo dos usuários da plataforma.
-* `telegram_account.py`: Credenciais da API do Telegram.
+Os modelos e a conexão com o banco são gerenciados agora pelo próprio Django.
 
 ---
 
@@ -197,10 +176,9 @@ Base para criação de testes automatizados.
 
 ## Tecnologias Utilizadas
 
-* **FastAPI**: Framework web principal
+* **Django / Django REST Framework**: Backend e APIs
 * **Celery + Redis**: Fila para tarefas assíncronas
-* **SQLAlchemy**: ORM
-* **Alembic**: Migrações de banco
+* **Django ORM**: Acesso ao banco de dados
 * **Docker**: Containerização
 * **Pydantic**: Validação de dados
 * **TOR**: Acesso à dark web
