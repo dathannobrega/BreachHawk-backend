@@ -20,11 +20,10 @@ RUN PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
     playwright install --with-deps chromium
 
 # Copia o código-fonte
-COPY ./backend/app /app
-COPY ./backend/django_project /app/django_project
+COPY ./backend/django_project /app/
 
 # Define PYTHONPATH
-ENV PYTHONPATH=/app:/app/django_project
+ENV PYTHONPATH=/app:/app/
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Comando padrão

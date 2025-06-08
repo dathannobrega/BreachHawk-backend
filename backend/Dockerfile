@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 ENV PYTHONPATH=/app
 
-COPY ./django_project/ /app/django_project
+COPY ./django_project/ /app/
 
 # Executa o servidor Django
-CMD ["python", "django_project/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
