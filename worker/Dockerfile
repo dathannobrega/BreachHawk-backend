@@ -21,10 +21,12 @@ RUN PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
 
 # Copia o código-fonte
 COPY ./backend/app /app
+COPY ./backend/django_project /app/django_project
 
 # Define PYTHONPATH
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/app/django_project
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Comando padrão
-CMD ["celery", "-A", "app.celery_app", "worker", "-l", "info", "-Ofair"]
+ENV DJANGO_SETTINGS_MODULE=breachhawk.settings
+CMD ["celery", "-A", "breachhawk.celery", "worker", "-l", "info", "-Ofair"]

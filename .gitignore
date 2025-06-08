@@ -38,3 +38,6 @@ __pycache__/
 
 # Alermbic scripts
 backend/app/alembic/versions
+backend/django_project/db.sqlite3
+
+
