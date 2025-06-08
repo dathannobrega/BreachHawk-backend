@@ -13,7 +13,7 @@ opentelemetry-instrumentation-celery
 python-dotenv
 motor
 stripe
-PyYAML==6.0
+PyYAML
 
 #testes
 pytest-asyncio

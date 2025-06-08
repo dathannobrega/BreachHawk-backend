@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
 
 ENV PYTHONPATH=/app
 
-COPY ./app/ /app
 COPY ./django_project/ /app/django_project
 
 # Executa o servidor Django
