@@ -69,17 +69,6 @@ services:
     ports:
       - "27017:27017"
 
-  frontend:
-    build:
-      context: ./BreachHawk-frontend
-      dockerfile: Dockerfile
-    image: breachhawk-frontend:latest
-    container_name: breachhawk-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
 volumes:
   pgdata:
   mongodata:

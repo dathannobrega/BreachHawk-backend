@@ -88,12 +88,12 @@ WSGI_APPLICATION = "breachhawk.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.environ.get("DJANGO_DB_NAME", BASE_DIR / "db.sqlite3"),
-        "USER": os.environ.get("DJANGO_DB_USER", ""),
-        "PASSWORD": os.environ.get("DJANGO_DB_PASSWORD", ""),
-        "HOST": os.environ.get("DJANGO_DB_HOST", ""),
-        "PORT": os.environ.get("DJANGO_DB_PORT", ""),
+        "ENGINE": os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.postgresql"),
+        "NAME": os.environ.get("DJANGO_DB_NAME", str(BASE_DIR / "db.sqlite3")),
+        "USER": os.environ.get("DJANGO_DB_USER", "admin"),
+        "PASSWORD": os.environ.get("DJANGO_DB_PASSWORD", "strongpassword"),
+        "HOST": os.environ.get("DJANGO_DB_HOST", "localhost"),
+        "PORT": os.environ.get("DJANGO_DB_PORT", "5432"),
     }
 }
 
@@ -156,11 +156,6 @@ SIMPLE_JWT = {
 # Additional application settings
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/1")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/2")
-POSTGRES_USER = os.environ.get("POSTGRES_USER", "admin")
-POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "strongpassword")
-POSTGRES_DB = os.environ.get("POSTGRES_DB", "breach_db")
-POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "127.0.0.1")
-POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
 MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://mongo:27017")
 MONGODB_DB = os.environ.get("MONGODB_DB", "breach_db")
 MONGODB_USER = os.environ.get("MONGODB_USER", "admin")
@@ -184,6 +179,7 @@ MAX_LOGIN_ATTEMPTS = int(os.environ.get("MAX_LOGIN_ATTEMPTS", "5"))
 ACCOUNT_LOCKOUT_MINUTES = int(os.environ.get("ACCOUNT_LOCKOUT_MINUTES", "30"))
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost")
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
+DJANGO_DB_ENGINE = os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.sqlite3")
 
 from core.logging_conf import configure_logging
 
