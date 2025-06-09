@@ -1,0 +1,67 @@
+name: CI/CD Pipeline
+
+# Dispara em push/pull_request na main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # 1) Lint de código
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - name: Instala dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+      - name: Roda flake8
+        run: |
+          flake8 .
+
+  # 2) Testes em matriz de Python
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [3.8, 3.9, 3.10]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/requirements.txt') }}
+      - name: Instala requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Roda testes
+        run: |
+          python manage.py test --failfast
+
+  # 3) Deploy em servidor via self-hosted runner
+  deploy:
+    needs: build-and-push
+    runs-on: [self-hosted, linux, docker]
+    steps:
+      - name: Pull & deploy
+        # Assumindo que o runner já tem docker-compose instalado
+        run: |
+          cd /home/breachhawk/BreachHawk-backend
+          docker compose up -d --build
+          # opcional: roda migrations e collectstatic
+          docker compose exec backend python manage.py migrate --noinput
+          docker compose exec backend python manage.py collectstatic --noinput
