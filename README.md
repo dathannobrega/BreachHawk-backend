@@ -56,6 +56,7 @@ worker/         # imagem do worker Celery
 
 - `POST /api/accounts/register` – cria um usuário
 - `POST /api/accounts/login` – autenticação e geração de JWT
+- `GET /api/accounts/login/google` – login via conta Google
 - `GET /api/accounts/me` – dados do usuário autenticado
 - `GET /api/companies/companies` – CRUD de empresas (admin)
 - `GET /api/companies/plans` – planos de assinatura (admin)
