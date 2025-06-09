@@ -16,8 +16,12 @@ class PlatformUser(AbstractUser):
         INACTIVE = "inactive", "Inactive"
         SUSPENDED = "suspended", "Suspended"
 
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    role = models.CharField(
+        max_length=20, choices=Role.choices, default=Role.USER
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.ACTIVE
+    )
     company = models.CharField(max_length=255, blank=True, null=True)
     job_title = models.CharField(max_length=255, blank=True, null=True)
     is_subscribed = models.BooleanField(default=True)
@@ -34,7 +38,9 @@ class PlatformUser(AbstractUser):
 class LoginHistory(models.Model):
     """Record of user logins."""
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
     timestamp = models.DateTimeField(auto_now_add=True)
     device = models.CharField(max_length=255, blank=True, null=True)
     ip_address = models.CharField(max_length=45, blank=True, null=True)
@@ -51,7 +57,9 @@ class LoginHistory(models.Model):
 class UserSession(models.Model):
     """Stores active authentication sessions."""
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
     token = models.CharField(max_length=255)
     device = models.CharField(max_length=255, blank=True, null=True)
     ip_address = models.CharField(max_length=45, blank=True, null=True)
@@ -79,7 +87,9 @@ class PasswordPolicy(models.Model):
 class PasswordResetToken(models.Model):
     """Token used for password reset flow."""
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
     token = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()

@@ -10,9 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
+import os
 import sys
 from datetime import timedelta
+from pathlib import Path
+
+from core.logging_conf import configure_logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,14 +26,12 @@ sys.path.append(str(BASE_DIR.parent))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-import os
-
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#all hosts allowed
+# all hosts allowed
 
 ALLOWED_HOSTS = ["*"]
 
@@ -92,8 +93,12 @@ WSGI_APPLICATION = "breachhawk.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.environ.get("DJANGO_DB_NAME", str(BASE_DIR / "db.sqlite3")),
+        "ENGINE": os.environ.get(
+            "DJANGO_DB_ENGINE", "django.db.backends.postgresql"
+        ),
+        "NAME": os.environ.get(
+            "DJANGO_DB_NAME", str(BASE_DIR / "db.sqlite3")
+        ),
         "USER": os.environ.get("DJANGO_DB_USER", "admin"),
         "PASSWORD": os.environ.get("DJANGO_DB_PASSWORD", "strongpassword"),
         "HOST": os.environ.get("DJANGO_DB_HOST", "localhost"),
@@ -107,16 +112,28 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
@@ -153,19 +170,27 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.environ.get("ACCESS_TOKEN_LIFETIME", "60"))),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.environ.get("REFRESH_TOKEN_LIFETIME_DAYS", "1"))),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.environ.get("ACCESS_TOKEN_LIFETIME", "60"))
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=int(os.environ.get("REFRESH_TOKEN_LIFETIME_DAYS", "1"))
+    ),
 }
 
 # Additional application settings
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/1")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/2")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://redis:6379/2"
+)
 MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://mongo:27017")
 MONGODB_DB = os.environ.get("MONGODB_DB", "breach_db")
 MONGODB_USER = os.environ.get("MONGODB_USER", "admin")
 MONGODB_PASS = os.environ.get("MONGODB_PASS", "strongpassword")
 TOR_CONTROL_PORT = int(os.environ.get("TOR_CONTROL_PORT", "9051"))
-TOR_CONTROL_PASSWORD = os.environ.get("TOR_CONTROL_PASSWORD", "SUA_SENHA_FORTE")
+TOR_CONTROL_PASSWORD = os.environ.get(
+    "TOR_CONTROL_PASSWORD", "SUA_SENHA_FORTE"
+)
 TOR_MAX_RETRIES = int(os.environ.get("TOR_MAX_RETRIES", "3"))
 TOR_RETRY_INTERVAL = float(os.environ.get("TOR_RETRY_INTERVAL", "5.0"))
 TOR_PROXY = os.environ.get("TOR_PROXY", "socks5://tor:9050")
@@ -174,23 +199,41 @@ SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "avisos@meudominio.com")
 SMTP_PASS = os.environ.get("SMTP_PASS", "senhaforte123!")
 PASSWORD_MIN_LENGTH = int(os.environ.get("PASSWORD_MIN_LENGTH", "8"))
-PASSWORD_REQUIRE_UPPERCASE = os.environ.get("PASSWORD_REQUIRE_UPPERCASE", "True") == "True"
-PASSWORD_REQUIRE_LOWERCASE = os.environ.get("PASSWORD_REQUIRE_LOWERCASE", "True") == "True"
-PASSWORD_REQUIRE_NUMBERS = os.environ.get("PASSWORD_REQUIRE_NUMBERS", "True") == "True"
-PASSWORD_REQUIRE_SYMBOLS = os.environ.get("PASSWORD_REQUIRE_SYMBOLS", "True") == "True"
+PASSWORD_REQUIRE_UPPERCASE = os.environ.get(
+    "PASSWORD_REQUIRE_UPPERCASE", "True"
+) == "True"
+PASSWORD_REQUIRE_LOWERCASE = os.environ.get(
+    "PASSWORD_REQUIRE_LOWERCASE", "True"
+) == "True"
+PASSWORD_REQUIRE_NUMBERS = os.environ.get(
+    "PASSWORD_REQUIRE_NUMBERS", "True"
+) == "True"
+PASSWORD_REQUIRE_SYMBOLS = os.environ.get(
+    "PASSWORD_REQUIRE_SYMBOLS", "True"
+) == "True"
 SESSION_TIMEOUT_HOURS = int(os.environ.get("SESSION_TIMEOUT_HOURS", "24"))
 MAX_LOGIN_ATTEMPTS = int(os.environ.get("MAX_LOGIN_ATTEMPTS", "5"))
 ACCOUNT_LOCKOUT_MINUTES = int(os.environ.get("ACCOUNT_LOCKOUT_MINUTES", "30"))
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost")
 STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
-DJANGO_DB_ENGINE = os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.sqlite3")
+DJANGO_DB_ENGINE = os.environ.get(
+    "DJANGO_DB_ENGINE", "django.db.backends.sqlite3"
+)
 
-from core.logging_conf import configure_logging
-
+# Configure logging
 configure_logging()
 
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins in development
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+CORS_ALLOWED_ORIGINS = [
+    "https://www.protexion.cloud",  # Adjust this to your frontend URL
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.protexion.cloud",
+    "https://dev.protexion.cloud",  # Adjust this to your frontend URL
+]
+CORS_ALLOW_ALL_ORIGINS = False  # Allow all origins in development
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies in cross-origin requests
 CORS_ALLOW_METHODS = [
     'DELETE',

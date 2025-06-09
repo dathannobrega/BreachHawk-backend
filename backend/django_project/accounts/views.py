@@ -12,7 +12,11 @@ import os
 from authlib.integrations.django_client import OAuth
 
 from .models import PlatformUser, LoginHistory, UserSession
-from .serializers import PlatformUserSerializer, LoginHistorySerializer, UserSessionSerializer
+from .serializers import (
+    PlatformUserSerializer,
+    LoginHistorySerializer,
+    UserSessionSerializer,
+)
 from .authentication import JWTAuthentication
 
 oauth = OAuth()
@@ -23,6 +27,7 @@ oauth.register(
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = PlatformUser.objects.all()
@@ -44,7 +49,11 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         return Response(
-            {"access": self.token["access"], "refresh": self.token["refresh"], "user": response.data},
+            {
+                "access": self.token["access"],
+                "refresh": self.token["refresh"],
+                "user": response.data
+            },
             status=status.HTTP_201_CREATED,
         )
 
@@ -62,10 +71,16 @@ class LoginView(APIView):
         user.save()
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        LoginHistory.objects.create(user=user, timestamp=datetime.now(timezone.utc), success=True)
+        LoginHistory.objects.create(
+            user=user, timestamp=datetime.now(timezone.utc), success=True
+        )
         UserSession.objects.create(user=user, token=access_token)
         data = PlatformUserSerializer(user).data
-        return Response({"access": access_token, "refresh": str(refresh), "user": data})
+        return Response({
+            "access": access_token,
+            "refresh": str(refresh),
+            "user": data
+        })
 
 
 class MeView(generics.RetrieveAPIView):
@@ -119,7 +134,10 @@ class GoogleCallbackView(APIView):
         token = oauth.google.authorize_access_token(request)
         userinfo = token.get("userinfo")
         if not userinfo:
-            return Response({"detail": "Google authentication failed"}, status=401)
+            return Response(
+                {"detail": "Google authentication failed"},
+                status=401
+            )
 
         email = userinfo.get("email")
         first = userinfo.get("given_name")
@@ -127,7 +145,10 @@ class GoogleCallbackView(APIView):
         picture = userinfo.get("picture")
         username = email.split("@")[0] if email else None
 
-        user, created = PlatformUser.objects.get_or_create(email=email, defaults={"username": username})
+        user, created = PlatformUser.objects.get_or_create(
+            email=email,
+            defaults={"username": username}
+        )
         updated = False
         if created:
             user.first_name = first or ""
@@ -146,7 +167,9 @@ class GoogleCallbackView(APIView):
                 user.profile_image = picture
                 updated = True
             if not user.username and username:
-                if not PlatformUser.objects.filter(username=username).exclude(id=user.id).exists():
+                if not PlatformUser.objects.filter(
+                    username=username
+                ).exclude(id=user.id).exists():
                     user.username = username
                     updated = True
             if updated:
@@ -157,7 +180,11 @@ class GoogleCallbackView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        LoginHistory.objects.create(user=user, timestamp=datetime.now(timezone.utc), success=True)
+        LoginHistory.objects.create(
+            user=user,
+            timestamp=datetime.now(timezone.utc),
+            success=True
+        )
         UserSession.objects.create(user=user, token=access_token)
 
         redirect_url = f"{settings.FRONTEND_URL}/login?token={access_token}"

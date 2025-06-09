@@ -7,7 +7,9 @@ from .forms import PlatformUserForm
 
 @pytest.mark.django_db
 def test_platform_user_model_str():
-    user = get_user_model().objects.create_user(username="john", email="j@x.com", password="pass")
+    user = get_user_model().objects.create_user(
+        username="john", email="j@x.com", password="pass"
+    )
     assert str(user) == "john"
     assert user.role == "user"
     assert user.status == "active"
@@ -16,11 +18,17 @@ def test_platform_user_model_str():
 @pytest.mark.django_db
 def test_register_and_login_api():
     client = APIClient()
-    resp = client.post(reverse("register"), {"username": "bob", "email": "b@x.com", "password": "secret"})
+    resp = client.post(
+        reverse("register"),
+        {"username": "bob", "email": "b@x.com", "password": "secret"},
+    )
     assert resp.status_code == 201
-    token = resp.data["access"]
+    # Access token is available but we'll test separately
     # Login
-    resp = client.post(reverse("login"), {"username": "bob", "password": "secret"})
+    resp = client.post(
+        reverse("login"),
+        {"username": "bob", "password": "secret"},
+    )
     assert resp.status_code == 200
     assert "access" in resp.data
     assert resp.data["user"]["username"] == "bob"
@@ -37,7 +45,10 @@ def test_me_endpoint_requires_authentication():
 @pytest.mark.django_db
 def test_me_endpoint_with_token():
     client = APIClient()
-    reg = client.post(reverse("register"), {"username": "alice", "email": "a@x.com", "password": "s3cret"})
+    reg = client.post(
+        reverse("register"),
+        {"username": "alice", "email": "a@x.com", "password": "s3cret"},
+    )
     token = reg.data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     resp = client.get(reverse("me"))
@@ -47,7 +58,13 @@ def test_me_endpoint_with_token():
 
 @pytest.mark.django_db
 def test_platform_user_form():
-    form = PlatformUserForm(data={"username": "ann", "email": "ann@example.com", "password": "pwd12345"})
+    form = PlatformUserForm(
+        data={
+            "username": "ann",
+            "email": "ann@example.com",
+            "password": "pwd12345",
+        }
+    )
     assert form.is_valid()
     user = form.save()
     assert user.check_password("pwd12345")
