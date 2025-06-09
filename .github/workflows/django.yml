@@ -50,7 +50,7 @@ jobs:
           pip install -r backend/requirements.txt
       - name: Roda testes
         run: |
-          python manage.py test --failfast
+          python backend/django_project/manage.py test --failfast
 
   # 3) Deploy em servidor via self-hosted runner
   deploy:
