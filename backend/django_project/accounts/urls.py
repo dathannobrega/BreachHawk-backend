@@ -7,6 +7,8 @@ from .views import (
     LoginHistoryListView,
     SessionListView,
     SessionDeleteView,
+    GoogleLoginView,
+    GoogleCallbackView,
 )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path("login-history/", LoginHistoryListView.as_view(), name="login-history"),
     path("sessions/", SessionListView.as_view(), name="session-list"),
     path("sessions/<int:session_id>/", SessionDeleteView.as_view(), name="session-delete"),
+    path("login/google/", GoogleLoginView.as_view(), name="google-login"),
+    path("callback/google/", GoogleCallbackView.as_view(), name="google-callback"),
 ]
