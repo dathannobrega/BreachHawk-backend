@@ -27,7 +27,9 @@ def _send_email(subject: str, body: str, html: str | None, to_email: str) -> Non
         password=password,
         use_tls=True,
     )
-    msg = EmailMultiAlternatives(subject, body, from_email, [to_email], connection=connection)
+    msg = EmailMultiAlternatives(
+        subject, body, from_email, [to_email], connection=connection
+    )
     if html:
         msg.attach_alternative(html, "text/html")
     msg.send()

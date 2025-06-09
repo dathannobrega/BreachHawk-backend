@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 from .base import BaseScraper
 
+
 class TelegramScraper(BaseScraper):
     """Scraper que coleta mensagens de canais do Telegram via HTML."""
     slug = "telegram"

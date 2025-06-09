@@ -8,7 +8,11 @@ def generate_unsubscribe_token(user_id: int) -> str:
     return signing.dumps({"user_id": user_id}, salt="unsubscribe-salt")
 
 
-def verify_unsubscribe_token(token: str, max_age_seconds: int = 60 * 60 * 24 * 7) -> int:
+def verify_unsubscribe_token(
+    token: str, max_age_seconds: int = 60 * 60 * 24 * 7
+) -> int:
     """Validate ``token`` and return the embedded ``user_id``."""
-    data = signing.loads(token, max_age=max_age_seconds, salt="unsubscribe-salt")
+    data = signing.loads(
+        token, max_age=max_age_seconds, salt="unsubscribe-salt"
+    )
     return data["user_id"]

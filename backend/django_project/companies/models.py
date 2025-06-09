@@ -32,8 +32,12 @@ class Company(models.Model):
     domain = models.CharField(max_length=255, unique=True)
     contact_name = models.CharField(max_length=255, blank=True, null=True)
     contact_email = models.EmailField(blank=True, null=True)
-    plan = models.CharField(max_length=20, choices=PlanType.choices, default=PlanType.TRIAL)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    plan = models.CharField(
+        max_length=20, choices=PlanType.choices, default=PlanType.TRIAL
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.ACTIVE
+    )
     monthly_revenue = models.FloatField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

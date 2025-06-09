@@ -1,10 +1,8 @@
 import asyncio
-import json
 import logging
 from typing import Dict
 
 from django.conf import settings
-from django.db import transaction
 
 from . import registry
 from .config import (
@@ -63,7 +61,7 @@ def run_scraper_for_site(site_id: int, payload: Dict | None = None) -> int:
     if not scraper:
         raise RuntimeError(f"Scraper '{site.scraper}' não encontrado")
 
-    urls = [l.url for l in site.links.all()] or [site.url]
+    urls = [link.url for link in site.links.all()] or [site.url]
     total_inserted = 0
     for url in urls:
         config = _build_config(site, url, payload)
@@ -75,7 +73,9 @@ def run_scraper_for_site(site_id: int, payload: Dict | None = None) -> int:
                 retries=getattr(scraper, "last_retries", 0),
                 permanent_fail=True,
             )
-            ScrapeLog.objects.create(site=site, url=url, success=False, message=str(exc))
+            ScrapeLog.objects.create(
+                site=site, url=url, success=False, message=str(exc)
+            )
             logger.exception("Scraper failure for %s", url)
             continue
 

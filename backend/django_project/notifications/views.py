@@ -1,6 +1,5 @@
-from rest_framework import generics, status
+from rest_framework import generics
 from rest_framework.permissions import IsAdminUser
-from rest_framework.response import Response
 from accounts.authentication import JWTAuthentication
 from .models import SMTPConfig
 from .serializers import SMTPConfigSerializer

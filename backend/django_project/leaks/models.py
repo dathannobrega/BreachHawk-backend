@@ -2,7 +2,9 @@ from django.db import models
 
 
 class Leak(models.Model):
-    site = models.ForeignKey("sites.Site", on_delete=models.CASCADE, null=True, blank=True)
+    site = models.ForeignKey(
+        "sites.Site", on_delete=models.CASCADE, null=True, blank=True
+    )
     company = models.CharField(max_length=255)
     country = models.CharField(max_length=255, blank=True, null=True)
     found_at = models.DateTimeField(auto_now_add=True)

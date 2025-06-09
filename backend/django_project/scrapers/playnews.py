@@ -49,11 +49,18 @@ class PlayNewsScraper(BaseScraper):
                     tid = m.group(1)
 
                     title = card.find(text=True, recursive=False).strip()
-                    country = card.select_one("i.location").next_sibling.strip() if card.select_one("i.location") else None
+                    country = (
+                        card.select_one("i.location").next_sibling.strip()
+                        if card.select_one("i.location") else None
+                    )
                     txt = card.get_text(" ", strip=True)
                     views = int(re.search(r"views:\s*(\d+)", txt).group(1))
-                    added = datetime.fromisoformat(re.search(r"added:\s*(\d{4}-\d{2}-\d{2})", txt).group(1)).replace(tzinfo=timezone.utc)
-                    pub_date = datetime.fromisoformat(re.search(r"publication date:\s*(\d{4}-\d{2}-\d{2})", txt).group(1)).replace(tzinfo=timezone.utc)
+                    added = datetime.fromisoformat(
+                        re.search(r"added:\s*(\d{4}-\d{2}-\d{2})", txt).group(1)
+                    ).replace(tzinfo=timezone.utc)
+                    pub_date = datetime.fromisoformat(
+                        re.search(r"publication date:\s*(\d{4}-\d{2}-\d{2})", txt).group(1)
+                    ).replace(tzinfo=timezone.utc)
 
                     detail_url = f"{site.url.rstrip('/')}/topic.php?id={tid}"
                     await page.goto(detail_url, wait_until="networkidle")
@@ -63,10 +70,16 @@ class PlayNewsScraper(BaseScraper):
                     amt = re.search(r"amount of data:\s*([^ ]+)", detail_txt, re.IGNORECASE)
                     amount_of_data = amt.group(1) if amt else None
 
-                    info = re.search(r"information:\s*(.+?)comment:", detail_txt, re.IGNORECASE | re.DOTALL)
+                    info = re.search(
+                        r"information:\s*(.+?)comment:", detail_txt, re.IGNORECASE | re.DOTALL
+                    )
                     information = info.group(1).strip() if info else None
 
-                    comm = re.search(r"comment:\s*(.+?)(?:DOWNLOAD LINKS:|$)", detail_txt, re.IGNORECASE | re.DOTALL)
+                    comm = re.search(
+                        r"comment:\s*(.+?)(?:DOWNLOAD LINKS:|$)",
+                        detail_txt,
+                        re.IGNORECASE | re.DOTALL
+                    )
                     comment = comm.group(1).strip() if comm else None
 
                     download_links = re.findall(r"https?://[^\s]+\.onion/[^\s]+", detail_txt)

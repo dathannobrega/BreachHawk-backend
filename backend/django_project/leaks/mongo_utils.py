@@ -12,7 +12,9 @@ async def insert_leak(doc: LeakDoc) -> str:
     return str(result.inserted_id)
 
 
-async def find_leaks_by_site(site_id: int, skip: int = 0, limit: int = 50) -> list[LeakDoc]:
+async def find_leaks_by_site(
+    site_id: int, skip: int = 0, limit: int = 50
+) -> list[LeakDoc]:
     cursor = mongo_db.leaks.find({"site_id": site_id}).skip(skip).limit(limit)
     docs = await cursor.to_list(length=limit)
     return [LeakDoc(**d) for d in docs]

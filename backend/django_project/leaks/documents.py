@@ -30,4 +30,3 @@ class LeakDoc(BaseModel):
                 "download_links": ["magnet:?xt=urn:btih:..."]
             }
         }
-

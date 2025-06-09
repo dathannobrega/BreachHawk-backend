@@ -8,6 +8,7 @@ from .base import BaseScraper
 
 DATE_RX = re.compile(r"(\d{2}/\d{2}/\d{4})")
 
+
 class RansomHouseScraper(BaseScraper):
     slug = "ransomhouse"
 

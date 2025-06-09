@@ -1,5 +1,6 @@
 # scrapers/akira_cli.py
-import re, asyncio, contextlib
+import re
+import asyncio
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
@@ -7,7 +8,7 @@ from playwright.async_api import async_playwright
 from .base import BaseScraper  # caminho absoluto
 from .config import ScraperConfig
 
-CLI_CMD   = "leaks"
+CLI_CMD = "leaks"
 MAGNET_RX = re.compile(r"magnet:\?xt=urn:btih:[^\s]+", re.I)
 
 class AkiraCLIScraper(BaseScraper):

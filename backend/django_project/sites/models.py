@@ -23,9 +23,15 @@ class Site(models.Model):
 
     name = models.CharField(max_length=255)
     url = models.URLField(unique=True, default="")
-    type = models.CharField(max_length=20, choices=SiteType.choices, default=SiteType.WEBSITE)
-    auth_type = models.CharField(max_length=20, choices=AuthType.choices, default=AuthType.NONE)
-    captcha_type = models.CharField(max_length=20, choices=CaptchaType.choices, default=CaptchaType.NONE)
+    type = models.CharField(
+        max_length=20, choices=SiteType.choices, default=SiteType.WEBSITE
+    )
+    auth_type = models.CharField(
+        max_length=20, choices=AuthType.choices, default=AuthType.NONE
+    )
+    captcha_type = models.CharField(
+        max_length=20, choices=CaptchaType.choices, default=CaptchaType.NONE
+    )
     scraper = models.CharField(max_length=255, default="generic")
     needs_js = models.BooleanField(default=False)
     enabled = models.BooleanField(default=True)
