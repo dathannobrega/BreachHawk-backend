@@ -12,6 +12,7 @@ def configure_logging() -> None:
             "formatters": {
                 "struct": {
                     "()": structlog.stdlib.ProcessorFormatter,
+                    "logger": logging.getLogger(),
                     "processors": [
                         structlog.stdlib.filter_by_level,
                         timestamper,
