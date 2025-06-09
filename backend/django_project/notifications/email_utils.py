@@ -18,7 +18,9 @@ def _load_config():
     )
 
 
-def _send_email(subject: str, body: str, html: str | None, to_email: str) -> None:
+def _send_email(
+    subject: str, body: str, html: str | None, to_email: str
+) -> None:
     host, port, user, password, from_email = _load_config()
     connection = get_connection(
         host=host,
@@ -59,13 +61,18 @@ def send_alert_email(to_email: str, leak: dict) -> None:
         f"Pa\u00eds: {leak['country']}\n"
         f"Data: {leak['date']}\n"
         f"Descri\u00e7\u00e3o: {leak['description']}\n"
-        f"Link: {leak['link']}\n\n"
-        "Se voc\u00ea j\u00e1 tomou provid\u00eancias, desconsidere esta mensagem."
+        f"Link: {leak['link']}\n\n",
+        (
+            "Se voc\u00ea j\u00e1 tomou provid\u00eancias, "
+            "desconsidere esta mensagem."
+        ),
     )
     _send_email(subject, text_content, html_content, to_email)
 
 
-def send_password_reset_email(to_email: str, reset_link: str, user_name: str) -> None:
+def send_password_reset_email(
+    to_email: str, reset_link: str, user_name: str
+) -> None:
     subject = "Redefini\u00e7\u00e3o de senha – Deep Protexion"
     html_content = render_to_string(
         "emails/password_reset.html",
