@@ -54,7 +54,7 @@ jobs:
 
   # 3) Deploy em servidor via self-hosted runner
   deploy:
-    needs: build-and-push
+    needs: test
     runs-on: [self-hosted, linux, docker]
     steps:
       - name: Pull & deploy
