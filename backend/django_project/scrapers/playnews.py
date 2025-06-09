@@ -9,6 +9,7 @@ from .base import BaseScraper
 
 TOPIC_RX = re.compile(r"viewtopic\('([^']+)'\)")
 
+
 class PlayNewsScraper(BaseScraper):
     slug = "playnews"
 

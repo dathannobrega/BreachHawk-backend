@@ -25,8 +25,9 @@ class RansomHouseScraper(BaseScraper):
             source_url = a_tag["href"] if a_tag else None
             m = DATE_RX.search(card.get_text(" ", strip=True))
             found_at = (
-                datetime.strptime(m.group(1), "%d/%m/%Y").replace(tzinfo=timezone.utc)
-                if m else datetime.now(timezone.utc)
+                datetime.strptime(m.group(1), "%d/%m/%Y").replace(
+                    tzinfo=timezone.utc
+                ) if m else datetime.now(timezone.utc)
             )
             leaks.append({
                 "company": company,

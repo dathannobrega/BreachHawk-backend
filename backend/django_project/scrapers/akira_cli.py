@@ -11,13 +11,16 @@ from .config import ScraperConfig
 CLI_CMD = "leaks"
 MAGNET_RX = re.compile(r"magnet:\?xt=urn:btih:[^\s]+", re.I)
 
+
 class AkiraCLIScraper(BaseScraper):
     slug = "akira_cli"
 
     async def _fetch_html(self, url: str) -> str:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(proxy={"server": self.TOR_PROXY})
+            context = await browser.new_context(
+                proxy={"server": self.TOR_PROXY}
+            )
             page = await context.new_page()
 
             await page.goto(url, wait_until="domcontentloaded")

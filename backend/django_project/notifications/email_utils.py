@@ -78,7 +78,8 @@ def send_password_reset_email(to_email: str, reset_link: str, user_name: str) ->
     )
     text_content = (
         f"Ol\u00e1, {user_name}!\n\n"
-        "Voc\u00ea solicitou a redefini\u00e7\u00e3o de senha. Clique no link abaixo para criar uma nova senha:\n\n"
+        "Voc\u00ea solicitou a redefini\u00e7\u00e3o de senha. "
+        "Clique no link abaixo para criar uma nova senha:\n\n"
         f"{reset_link}\n\n"
         "Se voc\u00ea n\u00e3o solicitou isso, por favor ignore este e-mail.\n"
     )

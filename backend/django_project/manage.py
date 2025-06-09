@@ -14,7 +14,9 @@ def main():
         env_path = Path(__file__).resolve().parent / ".env"
         if env_path.exists():
             load_dotenv(dotenv_path=env_path)
-            print("Variáveis de ambiente carregadas com sucesso do arquivo .env")
+            print(
+                "Variáveis de ambiente carregadas com sucesso do arquivo .env"
+            )
         else:
             print("Arquivo .env não encontrado em:", env_path)
     except ImportError:

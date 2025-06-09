@@ -6,6 +6,6 @@ from rest_framework_simplejwt.authentication import (
 
 
 class JWTAuthentication(SimpleJWTAuthentication):
-    """Wrapper around SimpleJWT's authentication class used across the project."""
+    """Wrapper around SimpleJWT's authentication class used in the project."""
 
     pass

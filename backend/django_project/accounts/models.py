@@ -50,7 +50,7 @@ class LoginHistory(models.Model):
     class Meta:
         ordering = ["-timestamp"]
 
-    def __str__(self) -> str:  # pragma: no cover - simple string representation
+    def __str__(self) -> str:  # pragma: no cover - simple repr
         return f"{self.user} @ {self.timestamp}"
 
 
@@ -67,7 +67,7 @@ class UserSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(blank=True, null=True)
 
-    def __str__(self) -> str:  # pragma: no cover - simple string representation
+    def __str__(self) -> str:  # pragma: no cover - simple repr
         return f"{self.user} - {self.token}"
 
 
@@ -80,7 +80,7 @@ class PasswordPolicy(models.Model):
     require_numbers = models.BooleanField()
     require_symbols = models.BooleanField()
 
-    def __str__(self) -> str:  # pragma: no cover - simple string representation
+    def __str__(self) -> str:  # pragma: no cover - simple repr
         return f"Policy {self.id}"
 
 
@@ -94,5 +94,5 @@ class PasswordResetToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
 
-    def __str__(self) -> str:  # pragma: no cover - simple string representation
+    def __str__(self) -> str:  # pragma: no cover - simple repr
         return f"{self.user} - {self.token}"
