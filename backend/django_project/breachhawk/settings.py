@@ -30,7 +30,9 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#all hosts allowed
+
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -51,9 +53,11 @@ INSTALLED_APPS = [
     "notifications",
     "scrapers",
     "sites",
+    "corsheaders",  # Added for CORS support
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Add this at the top of middleware list
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -184,3 +188,26 @@ DJANGO_DB_ENGINE = os.environ.get("DJANGO_DB_ENGINE", "django.db.backends.sqlite
 from core.logging_conf import configure_logging
 
 configure_logging()
+
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins in development
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies in cross-origin requests
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
