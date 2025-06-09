@@ -1,4 +1,3 @@
-import pytest
 from django.http import HttpRequest
 from .get_ip import get_client_ip
 

@@ -48,7 +48,11 @@ class BaseScraper(abc.ABC):
 
     def _build_session(self, config: ScraperConfig) -> requests.Session:
         session = requests.Session()
-        ua = random.choice(USER_AGENTS) if config.bypass_config.rotate_user_agent else "BreachHawkBot/1.0"
+        ua = (
+            random.choice(USER_AGENTS)
+            if config.bypass_config.rotate_user_agent
+            else "BreachHawkBot/1.0"
+        )
         session.headers.update({"User-Agent": ua})
         if config.url.endswith(".onion") or config.bypass_config.use_proxies:
             proxy = self.TOR_PROXY.replace("socks5://", "socks5h://")
@@ -59,11 +63,17 @@ class BaseScraper(abc.ABC):
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
             kwargs = {}
-            if config.url.endswith(".onion") or config.bypass_config.use_proxies:
+            if (
+                config.url.endswith(".onion")
+                or config.bypass_config.use_proxies
+            ):
                 kwargs["proxy"] = {"server": self.TOR_PROXY}
             ctx = await browser.new_context(**kwargs)
             page = await ctx.new_page()
-            await page.goto(config.url, timeout=config.execution_options.timeout_seconds * 1000)
+            await page.goto(
+                config.url,
+                timeout=config.execution_options.timeout_seconds * 1000,
+            )
             html = await page.content()
             await browser.close()
             return html
@@ -79,7 +89,10 @@ class BaseScraper(abc.ABC):
                 time.sleep(config.tor.retry_interval)
             try:
                 session = self._build_session(config)
-                resp = session.get(config.url, timeout=config.execution_options.timeout_seconds)
+                resp = session.get(
+                    config.url,
+                    timeout=config.execution_options.timeout_seconds,
+                )
                 resp.raise_for_status()
                 html = resp.text
                 if "<html" not in html.lower():
