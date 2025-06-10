@@ -4,6 +4,7 @@ from .views import (
     RegisterView,
     LoginView,
     MeView,
+    ProfileImageUploadView,
     LoginHistoryListView,
     SessionListView,
     SessionDeleteView,
@@ -18,6 +19,11 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("me/", MeView.as_view(), name="me"),
+    path(
+        "me/profile-image/",
+        ProfileImageUploadView.as_view(),
+        name="profile-image",
+    ),
     path(
         "login-history/",
         LoginHistoryListView.as_view(),
