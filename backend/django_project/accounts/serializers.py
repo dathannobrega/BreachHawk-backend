@@ -40,7 +40,10 @@ class PlatformUserUpdateSerializer(serializers.ModelSerializer):
             "organization",
             "contact",
         ]
-        extra_kwargs = {field: {"required": False, "allow_null": True} for field in fields}
+        extra_kwargs = {
+            field: {"required": False, "allow_null": True}
+            for field in fields
+        }
 
 
 class LoginHistorySerializer(serializers.ModelSerializer):
