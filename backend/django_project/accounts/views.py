@@ -11,13 +11,15 @@ from django.conf import settings
 import os
 from authlib.integrations.django_client import OAuth
 
-from .models import PlatformUser, LoginHistory, UserSession
+from .models import PlatformUser, LoginHistory, UserSession, PasswordPolicy
 from .serializers import (
     PlatformUserSerializer,
     LoginHistorySerializer,
     UserSessionSerializer,
+    PasswordPolicySerializer,
 )
 from .authentication import JWTAuthentication
+from .permissions import IsPlatformAdmin
 
 oauth = OAuth()
 oauth.register(
@@ -191,3 +193,56 @@ class GoogleCallbackView(APIView):
 
         redirect_url = f"{settings.FRONTEND_URL}/login?token={access_token}"
         return redirect(redirect_url)
+
+
+class PasswordPolicyView(generics.RetrieveUpdateAPIView):
+    """Retrieve or update the platform's password policy."""
+
+    serializer_class = PasswordPolicySerializer
+    authentication_classes = [JWTAuthentication]
+
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            return [IsPlatformAdmin()]
+        return [IsAuthenticated()]
+
+    def get_object(self):
+        policy = PasswordPolicy.objects.first()
+        if policy:
+            return policy
+        return PasswordPolicy(
+            min_length=settings.PASSWORD_MIN_LENGTH,
+            require_uppercase=settings.PASSWORD_REQUIRE_UPPERCASE,
+            require_lowercase=settings.PASSWORD_REQUIRE_LOWERCASE,
+            require_numbers=settings.PASSWORD_REQUIRE_NUMBERS,
+            require_symbols=settings.PASSWORD_REQUIRE_SYMBOLS,
+        )
+
+    def update(self, request, *args, **kwargs):
+        instance = PasswordPolicy.objects.first()
+        if instance:
+            serializer = self.get_serializer(instance, data=request.data)
+        else:
+            serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        policy = serializer.save()
+        return Response(self.get_serializer(policy).data)
+
+
+class PasswordPolicyPublicView(generics.RetrieveAPIView):
+    """Public endpoint to fetch the password policy."""
+
+    serializer_class = PasswordPolicySerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        policy = PasswordPolicy.objects.first()
+        if policy:
+            return policy
+        return PasswordPolicy(
+            min_length=settings.PASSWORD_MIN_LENGTH,
+            require_uppercase=settings.PASSWORD_REQUIRE_UPPERCASE,
+            require_lowercase=settings.PASSWORD_REQUIRE_LOWERCASE,
+            require_numbers=settings.PASSWORD_REQUIRE_NUMBERS,
+            require_symbols=settings.PASSWORD_REQUIRE_SYMBOLS,
+        )
