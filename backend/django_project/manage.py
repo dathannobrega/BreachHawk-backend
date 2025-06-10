@@ -21,7 +21,8 @@ def main():
             print("Arquivo .env não encontrado em:", env_path)
     except ImportError:
         print(
-            "python-dotenv não está instalado. Execute: pip install python-dotenv"
+            "python-dotenv não está instalado. "
+            "Execute: pip install python-dotenv"
         )
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "breachhawk.settings")

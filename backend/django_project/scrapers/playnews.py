@@ -57,22 +57,37 @@ class PlayNewsScraper(BaseScraper):
                     txt = card.get_text(" ", strip=True)
                     views = int(re.search(r"views:\s*(\d+)", txt).group(1))
                     added = datetime.fromisoformat(
-                        re.search(r"added:\s*(\d{4}-\d{2}-\d{2})", txt).group(1)
+                        re.search(
+                            r"added:\s*(\d{4}-\d{2}-\d{2})",
+                            txt,
+                        ).group(1)
                     ).replace(tzinfo=timezone.utc)
                     pub_date = datetime.fromisoformat(
-                        re.search(r"publication date:\s*(\d{4}-\d{2}-\d{2})", txt).group(1)
+                        re.search(
+                            r"publication date:\s*(\d{4}-\d{2}-\d{2})",
+                            txt,
+                        ).group(1)
                     ).replace(tzinfo=timezone.utc)
 
                     detail_url = f"{site.url.rstrip('/')}/topic.php?id={tid}"
                     await page.goto(detail_url, wait_until="networkidle")
                     await self._snapshot(page, site.id, db, save_html=True)
-                    detail_txt = BeautifulSoup(await page.content(), "html.parser").get_text(" ", strip=True)
+                    detail_txt = BeautifulSoup(
+                        await page.content(),
+                        "html.parser",
+                    ).get_text(" ", strip=True)
 
-                    amt = re.search(r"amount of data:\s*([^ ]+)", detail_txt, re.IGNORECASE)
+                    amt = re.search(
+                        r"amount of data:\s*([^ ]+)",
+                        detail_txt,
+                        re.IGNORECASE,
+                    )
                     amount_of_data = amt.group(1) if amt else None
 
                     info = re.search(
-                        r"information:\s*(.+?)comment:", detail_txt, re.IGNORECASE | re.DOTALL
+                        r"information:\s*(.+?)comment:",
+                        detail_txt,
+                        re.IGNORECASE | re.DOTALL,
                     )
                     information = info.group(1).strip() if info else None
 
@@ -83,8 +98,15 @@ class PlayNewsScraper(BaseScraper):
                     )
                     comment = comm.group(1).strip() if comm else None
 
-                    download_links = re.findall(r"https?://[^\s]+\.onion/[^\s]+", detail_txt)
-                    rar = re.search(r"Rar password:\s*([^\s]+)", detail_txt, re.IGNORECASE)
+                    download_links = re.findall(
+                        r"https?://[^\s]+\.onion/[^\s]+",
+                        detail_txt,
+                    )
+                    rar = re.search(
+                        r"Rar password:\s*([^\s]+)",
+                        detail_txt,
+                        re.IGNORECASE,
+                    )
                     rar_password = rar.group(1) if rar else None
 
                     leaks.append({

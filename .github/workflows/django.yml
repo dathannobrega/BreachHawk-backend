@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [3.8, 3.9, 3.10]
+        python: ["3.9", "3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
@@ -47,10 +47,10 @@ jobs:
       - name: Instala requirements
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r backend/requirements.txt
       - name: Roda testes
         run: |
-          python manage.py test --failfast
+          python backend/django_project/manage.py test --failfast
 
   # 3) Deploy em servidor via self-hosted runner
   deploy:
