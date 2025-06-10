@@ -9,6 +9,8 @@ from .views import (
     SessionDeleteView,
     GoogleLoginView,
     GoogleCallbackView,
+    PasswordPolicyView,
+    PasswordPolicyPublicView,
 )
 
 urlpatterns = [
@@ -36,5 +38,15 @@ urlpatterns = [
         "callback/google/",
         GoogleCallbackView.as_view(),
         name="google-callback"
+    ),
+    path(
+        "password-policy/",
+        PasswordPolicyView.as_view(),
+        name="password-policy",
+    ),
+    path(
+        "password-policy/public/",
+        PasswordPolicyPublicView.as_view(),
+        name="password-policy-public",
     ),
 ]
