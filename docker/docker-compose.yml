@@ -1,0 +1,80 @@
+version: '3.8'
+
+# Arquivo de composição para ambiente de produção
+services:
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+
+  backend:
+    extends:
+      file: docker-compose.base.yml
+      service: backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./environments/.env.production
+    environment:
+      DJANGO_SETTINGS_MODULE: breachhawk.settings
+      DEBUG: "False"
+      DJANGO_ENV: production
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+    env_file:
+      - ./environments/.env.production
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: breach_db
+
+  tor:
+    extends:
+      file: docker-compose.base.yml
+      service: tor
+    ports:
+      - "9050:9050"
+      - "9051:9051"
+
+  backend-worker:
+    extends:
+      file: docker-compose.base.yml
+      service: backend-worker
+    env_file:
+      - ./environments/.env.production
+    environment:
+      DJANGO_SETTINGS_MODULE: breachhawk.settings
+      DEBUG: "False"
+      DJANGO_ENV: production
+
+  backend-beat:
+    extends:
+      file: docker-compose.base.yml
+      service: backend-beat
+    env_file:
+      - ./environments/.env.production
+    environment:
+      DJANGO_SETTINGS_MODULE: breachhawk.settings
+      DEBUG: "False"
+      DJANGO_ENV: production
+
+  mongo:
+    extends:
+      file: docker-compose.base.yml
+      service: mongo
+    env_file:
+      - ./environments/.env.production
+    ports:
+      - "27017:27017"
+    volumes:
+      - ../mongodata:/data/db
+      - ../mongo:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
+  mongodata:

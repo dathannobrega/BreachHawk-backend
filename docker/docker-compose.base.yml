@@ -1,0 +1,69 @@
+services:
+  redis:
+    image: redis:7
+    restart: always
+    networks:
+      - breachhawk-network
+
+  backend:
+    build:
+      context: ../backend
+    depends_on:
+      - db
+    networks:
+      - breachhawk-network
+
+  db:
+    image: postgres:15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - breachhawk-network
+
+  tor:
+    build: ../proxy/tor
+    container_name: tor
+    restart: unless-stopped
+    networks:
+      - breachhawk-network
+
+  backend-worker:
+    build:
+      context: ..
+      dockerfile: worker/Dockerfile
+    command: celery -A breachhawk.celery worker -Ofair -l info
+    depends_on:
+      - backend
+      - redis
+      - tor
+    environment:
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+    networks:
+      - breachhawk-network
+
+  backend-beat:
+    build:
+      context: ..
+      dockerfile: worker/Dockerfile
+    command: celery -A breachhawk.celery beat -l info
+    depends_on:
+      - backend
+      - backend-worker
+    networks:
+      - breachhawk-network
+
+  mongo:
+    image: mongo:8
+    restart: always
+    volumes:
+      - ../mongo:/docker-entrypoint-initdb.d
+    networks:
+      - breachhawk-network
+
+volumes:
+  pgdata:
+  mongodata:
+
+networks:
+  breachhawk-network:
+    driver: bridge

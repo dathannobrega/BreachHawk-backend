@@ -1,0 +1,106 @@
+version: '3.8'
+
+# Arquivo de composição para ambiente de teste/desenvolvimento
+services:
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+
+  backend:
+    extends:
+      file: docker-compose.base.yml
+      service: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend/django_project:/app
+    env_file:
+      - ./environments/.env.test
+    environment:
+      DJANGO_SETTINGS_MODULE: breachhawk.settings
+      DEBUG: "True"
+      DJANGO_ENV: test
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./environments/.env.test
+    environment:
+      # Definição direta das variáveis sem depender de substituição
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: breach_db_test
+
+  tor:
+    extends:
+      file: docker-compose.base.yml
+      service: tor
+    ports:
+      - "9050:9050"
+      - "9051:9051"
+
+  backend-worker:
+    extends:
+      file: docker-compose.base.yml
+      service: backend-worker
+    volumes:
+      - ../backend/django_project:/app
+    env_file:
+      - ./environments/.env.test
+    environment:
+      DJANGO_SETTINGS_MODULE: breachhawk.settings
+      DEBUG: "True"
+      DJANGO_ENV: test
+
+  backend-beat:
+    extends:
+      file: docker-compose.base.yml
+      service: backend-beat
+    volumes:
+      - ../backend/django_project:/app
+    env_file:
+      - ./environments/.env.test
+    environment:
+      DJANGO_SETTINGS_MODULE: breachhawk.settings
+      DEBUG: "True"
+      DJANGO_ENV: test
+
+  # Frontend para ambiente de teste
+  frontend:
+    image: breachhawk-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./environments/.env.test
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000/
+    depends_on:
+      - backend
+    networks:
+      - breachhawk-network
+
+  mongo:
+    extends:
+      file: docker-compose.base.yml
+      service: mongo
+    ports:
+      - "27017:27017"
+    env_file:
+      - ./environments/.env.test
+    volumes:
+      - ../mongodata_test:/data/db
+      - ../mongo:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
+  mongodata_test:
+
+networks:
+  breachhawk-network:
+    driver: bridge
