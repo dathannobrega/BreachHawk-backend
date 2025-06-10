@@ -59,6 +59,43 @@ def test_me_endpoint_with_token():
 
 
 @pytest.mark.django_db
+def test_update_me_endpoint():
+    client = APIClient()
+    reg = client.post(
+        reverse("register"),
+        {"username": "jim", "email": "j@x.com", "password": "s3cret"},
+    )
+    token = reg.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    resp = client.put(
+        reverse("me"),
+        {"first_name": "Jim", "last_name": "Beam"},
+        format="json",
+    )
+    assert resp.status_code == 200
+    assert resp.data["first_name"] == "Jim"
+
+
+@pytest.mark.django_db
+def test_profile_image_upload_endpoint(tmp_path):
+    client = APIClient()
+    reg = client.post(
+        reverse("register"),
+        {"username": "kelly", "email": "k@x.com", "password": "s3cret"},
+    )
+    token = reg.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    img_file = tmp_path / "img.png"
+    img_file.write_bytes(b"fakeimg")
+    with img_file.open("rb") as f:
+        resp = client.post(
+            reverse("profile-image"), {"file": f}, format="multipart"
+        )
+    assert resp.status_code == 200
+    assert resp.data["profile_image"].startswith("/static/profile_images/")
+
+
+@pytest.mark.django_db
 def test_platform_user_form():
     form = PlatformUserForm(
         data={

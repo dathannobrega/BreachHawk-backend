@@ -9,11 +9,13 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.conf import settings
 import os
+import uuid
 from authlib.integrations.django_client import OAuth
 
 from .models import PlatformUser, LoginHistory, UserSession, PasswordPolicy
 from .serializers import (
     PlatformUserSerializer,
+    PlatformUserUpdateSerializer,
     LoginHistorySerializer,
     UserSessionSerializer,
     PasswordPolicySerializer,
@@ -87,13 +89,17 @@ class LoginView(APIView):
         })
 
 
-class MeView(generics.RetrieveAPIView):
-    serializer_class = PlatformUserSerializer
+class MeView(generics.RetrieveUpdateAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
+
+    def get_serializer_class(self):
+        if self.request.method in ["PUT", "PATCH"]:
+            return PlatformUserUpdateSerializer
+        return PlatformUserSerializer
 
 
 class LoginHistoryListView(generics.ListAPIView):
@@ -121,6 +127,28 @@ class SessionDeleteView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return UserSession.objects.filter(user=self.request.user)
+
+
+class ProfileImageUploadView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"detail": "No file provided"}, status=400)
+        directory = "static/profile_images"
+        os.makedirs(directory, exist_ok=True)
+        ext = os.path.splitext(file.name)[1]
+        filename = f"{uuid.uuid4().hex}{ext}"
+        path = os.path.join(directory, filename)
+        with open(path, "wb+") as out_file:
+            for chunk in file.chunks():
+                out_file.write(chunk)
+        user = request.user
+        user.profile_image = f"/static/profile_images/{filename}"
+        user.save()
+        return Response(PlatformUserSerializer(user).data)
 
 
 class GoogleLoginView(APIView):

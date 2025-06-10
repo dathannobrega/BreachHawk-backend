@@ -26,6 +26,23 @@ class PlatformUserSerializer(serializers.ModelSerializer):
         ]
 
 
+class PlatformUserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlatformUser
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "company",
+            "job_title",
+            "is_subscribed",
+            "profile_image",
+            "organization",
+            "contact",
+        ]
+        extra_kwargs = {field: {"required": False, "allow_null": True} for field in fields}
+
+
 class LoginHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = LoginHistory
