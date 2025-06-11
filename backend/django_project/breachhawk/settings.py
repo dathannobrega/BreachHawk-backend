@@ -154,7 +154,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATICFILES_DIRS = BASE_DIR / "staticfiles"
+STATIC_ROOT = BASE_DIR / "static"
 
 # Custom user model
 AUTH_USER_MODEL = "accounts.PlatformUser"
@@ -229,6 +231,7 @@ SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 CORS_ALLOWED_ORIGINS = [
     "https://www.protexion.cloud",  # Adjust this to your frontend URL
+    "http://localhost:3000",  # Adjust this to your frontend URL
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://www.protexion.cloud",
