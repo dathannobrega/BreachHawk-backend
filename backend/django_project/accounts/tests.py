@@ -92,7 +92,7 @@ def test_profile_image_upload_endpoint(tmp_path):
             reverse("profile-image"), {"file": f}, format="multipart"
         )
     assert resp.status_code == 200
-    assert resp.data["profile_image"].startswith("/static/profile_images/")
+    assert resp.data["profile_image"].startswith("/media/profile_images/")
 
 
 @pytest.mark.django_db

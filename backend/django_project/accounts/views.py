@@ -137,16 +137,22 @@ class ProfileImageUploadView(APIView):
         file = request.FILES.get("file")
         if not file:
             return Response({"detail": "No file provided"}, status=400)
-        directory = "static/profile_images"
+        
+        # Use MEDIA_ROOT for user uploaded content
+        from django.conf import settings
+        directory = os.path.join(settings.MEDIA_ROOT, "profile_images")
         os.makedirs(directory, exist_ok=True)
+        
         ext = os.path.splitext(file.name)[1]
         filename = f"{uuid.uuid4().hex}{ext}"
         path = os.path.join(directory, filename)
+        
         with open(path, "wb+") as out_file:
             for chunk in file.chunks():
                 out_file.write(chunk)
+                
         user = request.user
-        user.profile_image = f"/static/profile_images/{filename}"
+        user.profile_image = f"{settings.MEDIA_URL}profile_images/{filename}"
         user.save()
         return Response(PlatformUserSerializer(user).data)
 
