@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -280,3 +280,41 @@ class PasswordPolicyPublicView(generics.RetrieveAPIView):
             require_numbers=settings.PASSWORD_REQUIRE_NUMBERS,
             require_symbols=settings.PASSWORD_REQUIRE_SYMBOLS,
         )
+
+
+class PlatformUserViewSet(viewsets.ModelViewSet):
+    queryset = PlatformUser.objects.all()
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsPlatformAdmin]
+
+    def get_serializer_class(self):
+        if self.action in ("update", "partial_update"):
+            return PlatformUserUpdateSerializer
+        return PlatformUserSerializer
+
+    def perform_create(self, serializer):
+        password = self.request.data.get("password")
+        user = serializer.save()
+        if password:
+            user.set_password(password)
+            user.save()
+
+
+class UserLoginHistoryView(generics.ListAPIView):
+    serializer_class = LoginHistorySerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsPlatformAdmin]
+
+    def get_queryset(self):
+        user_id = self.kwargs["user_id"]
+        return LoginHistory.objects.filter(user_id=user_id).order_by("-timestamp")
+
+
+class UserSessionListView(generics.ListAPIView):
+    serializer_class = UserSessionSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsPlatformAdmin]
+
+    def get_queryset(self):
+        user_id = self.kwargs["user_id"]
+        return UserSession.objects.filter(user_id=user_id).order_by("-created_at")

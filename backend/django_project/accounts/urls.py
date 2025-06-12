@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView,
@@ -12,7 +13,13 @@ from .views import (
     GoogleCallbackView,
     PasswordPolicyView,
     PasswordPolicyPublicView,
+    PlatformUserViewSet,
+    UserLoginHistoryView,
+    UserSessionListView,
 )
+
+router = DefaultRouter()
+router.register(r"platform-users", PlatformUserViewSet, basename="platformuser")
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
@@ -55,4 +62,16 @@ urlpatterns = [
         PasswordPolicyPublicView.as_view(),
         name="password-policy-public",
     ),
+    path(
+        "platform-users/<int:user_id>/login-history/",
+        UserLoginHistoryView.as_view(),
+        name="platform-user-login-history",
+    ),
+    path(
+        "platform-users/<int:user_id>/sessions/",
+        UserSessionListView.as_view(),
+        name="platform-user-session-list",
+    ),
 ]
+
+urlpatterns += router.urls
