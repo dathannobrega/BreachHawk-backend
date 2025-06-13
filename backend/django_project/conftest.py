@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 
+
 @pytest.fixture
 def admin_user(db):
     User = get_user_model()
@@ -15,10 +16,14 @@ def admin_user(db):
     )
     return user
 
+
 @pytest.fixture
 def auth_client(admin_user):
     client = APIClient()
-    resp = client.post(reverse("login"), {"username": admin_user.username, "password": "adminpass"})
+    resp = client.post(
+        reverse("login"),
+        {"username": admin_user.username, "password": "adminpass"},
+    )
     token = resp.data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client

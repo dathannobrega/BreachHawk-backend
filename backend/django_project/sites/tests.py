@@ -3,6 +3,7 @@ from django.urls import reverse
 from .models import Site, SiteLink, TelegramAccount
 from .serializers import SiteSerializer
 
+
 @pytest.mark.django_db
 def test_site_model_str():
     site = Site.objects.create(name="MySite", url="http://s.com")

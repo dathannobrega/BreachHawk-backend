@@ -5,10 +5,15 @@ from .models import Leak
 from .serializers import LeakSerializer
 from sites.models import Site
 
+
 @pytest.mark.django_db
 def test_leak_model_str():
     site = Site.objects.create(name="S", url="http://s.com")
-    leak = Leak.objects.create(site=site, company="ACME", source_url="http://e.com")
+    leak = Leak.objects.create(
+        site=site,
+        company="ACME",
+        source_url="http://e.com",
+    )
     assert str(leak) == "ACME - http://e.com"
 
 

@@ -4,6 +4,7 @@ from .models import ScrapeLog, Snapshot
 from .serializers import ScrapeLogSerializer, SnapshotSerializer
 from sites.models import Site
 
+
 @pytest.mark.django_db
 def test_scrapelog_model_str():
     site = Site.objects.create(name="S", url="http://s.com")
