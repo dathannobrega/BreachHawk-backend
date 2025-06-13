@@ -25,6 +25,11 @@ Plataforma de intelligence focada em vazamentos na dark web. O backend utiliza *
 
 A API ficará disponível em `http://localhost:8000/api/`.
 
+## Variáveis de Ambiente
+
+Copie `.env.example` para `.env` antes de iniciar o projeto e ajuste os valores conforme o ambiente.
+Os valores padrão do exemplo são indicados para desenvolvimento e testes locais. Em produção utilize senhas e URLs reais para banco de dados, MongoDB, Redis, SMTP e outros serviços.
+
 ## Estrutura
 
 ```

@@ -3,6 +3,7 @@ from django.urls import reverse
 from .models import SMTPConfig, Webhook
 from .serializers import SMTPConfigSerializer
 
+
 @pytest.mark.django_db
 def test_smtpconfig_model_str():
     obj = SMTPConfig.objects.create(
@@ -39,6 +40,15 @@ def test_smtpconfig_api_get_update(auth_client):
     url = reverse("smtp-config")
     resp = auth_client.get(url)
     assert resp.status_code == 200
-    resp = auth_client.put(url, {"host": "mail", "port": 587, "username": "u", "from_email": "a@b.com"}, format="json")
+    resp = auth_client.put(
+        url,
+        {
+            "host": "mail",
+            "port": 587,
+            "username": "u",
+            "from_email": "a@b.com",
+        },
+        format="json",
+    )
     assert resp.status_code == 200
     assert resp.data["host"] == "mail"

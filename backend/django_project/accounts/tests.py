@@ -144,9 +144,11 @@ def test_password_policy_update_and_fetch():
     public = client.get(reverse("password-policy-public"))
     assert public.data["min_length"] == 5
 
+
 @pytest.mark.django_db
 def test_login_history_and_sessions(auth_client, admin_user):
-    # login already performed by auth_client fixture and should create history/session
+    # login already performed by auth_client fixture
+    # should create history/session
     history_resp = auth_client.get(reverse("login-history"))
     assert history_resp.status_code == 200
     assert history_resp.data

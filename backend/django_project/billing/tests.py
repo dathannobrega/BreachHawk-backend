@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 from .models import Invoice, Payment, Subscription
 
+
 @pytest.mark.django_db
 def test_invoice_model_str():
     obj = Invoice.objects.create(stripe_id="inv_1", amount_due=100)

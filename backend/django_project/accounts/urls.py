@@ -19,7 +19,11 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r"platform-users", PlatformUserViewSet, basename="platformuser")
+router.register(
+    r"platform-users",
+    PlatformUserViewSet,
+    basename="platformuser",
+)
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
