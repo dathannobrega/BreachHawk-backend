@@ -70,8 +70,11 @@ Todos os endpoints estão sob o prefixo `/api/`.
 
 ## Testes
 
-Os testes utilizam `pytest`. Após instalar as dependências, execute:
+Os testes utilizam `pytest`. Instale primeiro as dependências principais e, em
+seguida, as dependências de desenvolvimento descritas em
+`requirements-dev.txt`:
 
 ```bash
+pip install -r requirements-dev.txt
 pytest -q
 ```
