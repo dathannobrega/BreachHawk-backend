@@ -283,16 +283,23 @@ class PasswordPolicyPublicView(generics.RetrieveAPIView):
 
 
 class PlatformUserViewSet(viewsets.ModelViewSet):
+    """ViewSet for CRUD operations on platform users."""
+
     queryset = PlatformUser.objects.all()
+    serializer_class = PlatformUserSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsPlatformAdmin]
 
-    def get_serializer_class(self):
-        if self.action in ("update", "partial_update"):
-            return PlatformUserUpdateSerializer
-        return PlatformUserSerializer
-
     def perform_create(self, serializer):
+        """Hash the password when creating a user."""
+        password = self.request.data.get("password")
+        user = serializer.save()
+        if password:
+            user.set_password(password)
+            user.save()
+
+    def perform_update(self, serializer):
+        """Hash the password when updating a user if provided."""
         password = self.request.data.get("password")
         user = serializer.save()
         if password:

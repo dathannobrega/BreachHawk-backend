@@ -3,12 +3,17 @@ from .models import PlatformUser, LoginHistory, UserSession, PasswordPolicy
 
 
 class PlatformUserSerializer(serializers.ModelSerializer):
+    """Serializer used for creating and managing platform users."""
+
+    password = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = PlatformUser
         fields = [
             "id",
             "username",
             "email",
+            "password",
             "first_name",
             "last_name",
             "role",
@@ -19,6 +24,12 @@ class PlatformUserSerializer(serializers.ModelSerializer):
             "profile_image",
             "organization",
             "contact",
+            "failed_login_attempts",
+            "lockout_until",
+            "last_login",
+            "date_joined",
+        ]
+        read_only_fields = [
             "failed_login_attempts",
             "lockout_until",
             "last_login",
