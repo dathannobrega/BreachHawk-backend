@@ -22,5 +22,8 @@ class IsAdminOrPlatformAdmin(BasePermission):
         return bool(
             user
             and user.is_authenticated
-            and (user.is_staff or user.role == PlatformUser.Role.PLATFORM_ADMIN)
+            and (
+                user.is_staff
+                or user.role == PlatformUser.Role.PLATFORM_ADMIN
+            )
         )
