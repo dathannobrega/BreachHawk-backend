@@ -1,0 +1,247 @@
+{
+  "info": {
+    "_postman_id": "11111111-2222-3333-4444-555555555555",
+    "name": "BreachHawk API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/accounts/register/",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api","accounts","register",""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"email\": \"\",\n  \"password\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/accounts/login/",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api","accounts","login",""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"password\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/accounts/refresh/",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api","accounts","refresh",""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/accounts/me/",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api","accounts","me",""]
+            }
+          }
+        },
+        {
+          "name": "Update Me",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "PUT",
+            "url": {
+              "raw": "{{BASE_URL}}/api/accounts/me/",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api","accounts","me",""]
+            },
+            "body": {"mode": "raw","raw": "{\n  \"first_name\": \"\"\n}"}
+          }
+        },
+        {
+          "name": "Upload Profile Image",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "POST",
+            "url": {
+              "raw": "{{BASE_URL}}/api/accounts/me/profile-image/",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api","accounts","me","profile-image",""]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "file","type": "file","src": ""}]
+            }
+          }
+        },
+        {
+          "name": "Login History",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/login-history/","host": ["{{BASE_URL}}"],"path": ["api","accounts","login-history",""]}
+          }
+        },
+        {
+          "name": "Sessions",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/sessions/","host": ["{{BASE_URL}}"],"path": ["api","accounts","sessions",""]}
+          }
+        },
+        {
+          "name": "Delete Session",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "DELETE",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/sessions/:id/","host": ["{{BASE_URL}}"],"path": ["api","accounts","sessions",":id",""]}
+          }
+        },
+        {
+          "name": "Google Login",
+          "request": {"method": "GET","url": {"raw": "{{BASE_URL}}/api/accounts/login/google/","host": ["{{BASE_URL}}"],"path": ["api","accounts","login","google",""]}}
+        },
+        {
+          "name": "Google Callback",
+          "request": {"method": "GET","url": {"raw": "{{BASE_URL}}/api/accounts/callback/google/","host": ["{{BASE_URL}}"],"path": ["api","accounts","callback","google",""]}}
+        },
+        {
+          "name": "Password Policy",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/password-policy/","host": ["{{BASE_URL}}"],"path": ["api","accounts","password-policy",""]}
+          }
+        },
+        {
+          "name": "Update Password Policy",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "PUT",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/password-policy/","host": ["{{BASE_URL}}"],"path": ["api","accounts","password-policy",""]},
+            "body": {"mode": "raw","raw": "{\n  \"min_length\": 8\n}"}
+          }
+        },
+        {
+          "name": "Password Policy Public",
+          "request": {"method": "GET","url": {"raw": "{{BASE_URL}}/api/accounts/password-policy/public/","host": ["{{BASE_URL}}"],"path": ["api","accounts","password-policy","public",""]}}
+        },
+        {
+          "name": "Platform Users",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/platform-users/","host": ["{{BASE_URL}}"],"path": ["api","accounts","platform-users",""]}
+          }
+        },
+        {
+          "name": "Create Platform User",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "POST",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/platform-users/","host": ["{{BASE_URL}}"],"path": ["api","accounts","platform-users",""]},
+            "body": {"mode": "raw","raw": "{\n  \"username\": \"\",\n  \"email\": \"\",\n  \"password\": \"\"\n}"}
+          }
+        },
+        {
+          "name": "Platform User Detail",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/platform-users/:id/","host": ["{{BASE_URL}}"],"path": ["api","accounts","platform-users",":id",""]}
+          }
+        },
+        {
+          "name": "Platform User Login History",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/platform-users/:id/login-history/","host": ["{{BASE_URL}}"],"path": ["api","accounts","platform-users",":id","login-history",""]}
+          }
+        },
+        {
+          "name": "Platform User Sessions",
+          "request": {
+            "auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},
+            "method": "GET",
+            "url": {"raw": "{{BASE_URL}}/api/accounts/platform-users/:id/sessions/","host": ["{{BASE_URL}}"],"path": ["api","accounts","platform-users",":id","sessions",""]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {"name": "Invoices","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/billing/invoices/","host": ["{{BASE_URL}}"],"path": ["api","billing","invoices",""]}}},
+        {"name": "Payments","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/billing/payments/","host": ["{{BASE_URL}}"],"path": ["api","billing","payments",""]}}},
+        {"name": "Subscriptions","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/billing/subscriptions/","host": ["{{BASE_URL}}"],"path": ["api","billing","subscriptions",""]}}}
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {"name": "Companies","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/companies/","host": ["{{BASE_URL}}"],"path": ["api","companies",""]}}},
+        {"name": "Create Company","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "POST","url": {"raw": "{{BASE_URL}}/api/companies/","host": ["{{BASE_URL}}"],"path": ["api","companies",""]},"body": {"mode": "raw","raw": "{\n  \"name\": \"\"\n}"}}},
+        {"name": "Company Detail","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/companies/:id/","host": ["{{BASE_URL}}"],"path": ["api","companies",":id",""]}}},
+        {"name": "Plans","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/companies/plans/","host": ["{{BASE_URL}}"],"path": ["api","companies","plans",""]}}}
+      ]
+    },
+    {
+      "name": "Sites",
+      "item": [
+        {"name": "Sites","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/sites/","host": ["{{BASE_URL}}"],"path": ["api","sites",""]}}},
+        {"name": "Create Site","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "POST","url": {"raw": "{{BASE_URL}}/api/sites/","host": ["{{BASE_URL}}"],"path": ["api","sites",""]},"body": {"mode": "raw","raw": "{\n  \"url\": \"\"\n}"}}},
+        {"name": "Site Detail","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/sites/:id/","host": ["{{BASE_URL}}"],"path": ["api","sites",":id",""]}}}
+      ]
+    },
+    {
+      "name": "Scrapers",
+      "item": [
+        {"name": "Scrape Logs","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/scrapers/logs/","host": ["{{BASE_URL}}"],"path": ["api","scrapers","logs",""]}}},
+        {"name": "Scrape Log Detail","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/scrapers/logs/:id/","host": ["{{BASE_URL}}"],"path": ["api","scrapers","logs",":id",""]}}},
+        {"name": "Snapshots","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/scrapers/snapshots/","host": ["{{BASE_URL}}"],"path": ["api","scrapers","snapshots",""]}}},
+        {"name": "Snapshot Detail","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/scrapers/snapshots/:id/","host": ["{{BASE_URL}}"],"path": ["api","scrapers","snapshots",":id",""]}}}
+      ]
+    },
+    {
+      "name": "Leaks",
+      "item": [
+        {"name": "Leaks","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/leaks/leaks/","host": ["{{BASE_URL}}"],"path": ["api","leaks","leaks",""]}}},
+        {"name": "Create Leak","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "POST","url": {"raw": "{{BASE_URL}}/api/leaks/leaks/","host": ["{{BASE_URL}}"],"path": ["api","leaks","leaks",""]},"body": {"mode": "raw","raw": "{}"}}}
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {"name": "SMTP Config","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "GET","url": {"raw": "{{BASE_URL}}/api/notifications/smtp/","host": ["{{BASE_URL}}"],"path": ["api","notifications","smtp",""]}}},
+        {"name": "Update SMTP Config","request": {"auth": {"type": "bearer","bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]},"method": "PUT","url": {"raw": "{{BASE_URL}}/api/notifications/smtp/","host": ["{{BASE_URL}}"],"path": ["api","notifications","smtp",""]},"body": {"mode": "raw","raw": "{}"}}}
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token","value": "{{access_token}}","type": "string"}]
+  },
+  "variable": [{"key": "BASE_URL","value": "http://localhost:8000","type": "string"}]
+}
