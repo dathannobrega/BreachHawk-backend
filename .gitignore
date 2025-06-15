@@ -40,5 +40,5 @@ __pycache__/
 backend/app/alembic/versions
 backend/django_project/db.sqlite3
 
-backend\django_project\media\profile_images
-backend\django_project\static
+backend/django_project/media/
+backend/django_project/static

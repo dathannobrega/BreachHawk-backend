@@ -52,3 +52,22 @@ def test_smtpconfig_api_get_update(auth_client):
     )
     assert resp.status_code == 200
     assert resp.data["host"] == "mail"
+
+
+@pytest.mark.django_db
+def test_smtp_test_email_endpoint(auth_client, monkeypatch):
+    """Ensure the SMTP test email endpoint sends an email."""
+
+    captured = {}
+
+    def fake_send(to_email: str) -> None:
+        captured["arg"] = to_email
+
+    monkeypatch.setattr("notifications.views.send_test_email", fake_send)
+
+    url = reverse("smtp-test")
+    resp = auth_client.post(url, {"to_email": "t@example.com"}, format="json")
+
+    assert resp.status_code == 200
+    assert resp.data["success"] is True
+    assert captured["arg"] == "t@example.com"

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
+from typing import Optional
 from django.template.loader import render_to_string
 
 from .models import SMTPConfig
@@ -19,7 +20,7 @@ def _load_config():
 
 
 def _send_email(
-    subject: str, body: str, html: str | None, to_email: str
+    subject: str, body: str, html: Optional[str], to_email: str
 ) -> None:
     host, port, user, password, from_email = _load_config()
     connection = get_connection(
@@ -39,6 +40,21 @@ def _send_email(
 
 def send_simple_email(to_email: str, subject: str, body: str) -> None:
     _send_email(subject, body, None, to_email)
+
+
+def send_test_email(to_email: str) -> None:
+    """Send a short HTML and plain text test email."""
+
+    subject = "Teste de SMTP"
+    html_content = render_to_string(
+        "emails/test_email.html",
+        {
+            "subject": subject,
+            "unsubscribe_url": "https://yourdomain.com/unsubscribe",
+        },
+    )
+    text_content = "Seu servidor de e-mail está funcionando corretamente."
+    _send_email(subject, text_content, html_content, to_email)
 
 
 def send_alert_email(to_email: str, leak: dict) -> None:
