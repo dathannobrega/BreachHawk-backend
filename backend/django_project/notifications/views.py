@@ -59,7 +59,10 @@ class UnsubscribeView(APIView):
     def post(self, request) -> Response:
         token = request.data.get("token")
         if not token:
-            return Response({"detail": "Token ausente ou inválido."}, status=400)
+            return Response(
+                {"detail": "Token ausente ou inválido."},
+                status=400,
+            )
 
         try:
             result = unsubscribe_user_by_token(token)
