@@ -12,3 +12,9 @@ class WebhookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Webhook
         fields = ["id", "user", "url", "enabled"]
+
+
+class TestEmailSerializer(serializers.Serializer):
+    """Serializer used to validate data for sending a test email."""
+
+    to_email = serializers.EmailField()
