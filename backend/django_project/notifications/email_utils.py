@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
+from typing import Optional
 from django.template.loader import render_to_string
 
 from .models import SMTPConfig
@@ -19,7 +20,7 @@ def _load_config():
 
 
 def _send_email(
-    subject: str, body: str, html: str | None, to_email: str
+    subject: str, body: str, html: Optional[str], to_email: str
 ) -> None:
     host, port, user, password, from_email = _load_config()
     connection = get_connection(

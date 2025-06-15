@@ -1,5 +1,6 @@
 import re
 from django.conf import settings
+from typing import Optional
 from .models import PasswordPolicy
 
 
@@ -22,7 +23,7 @@ def _load_policy() -> dict:
     }
 
 
-def validate_password(password: str) -> str | None:
+def validate_password(password: str) -> Optional[str]:
     cfg = _load_policy()
     if len(password) < cfg["min_length"]:
         return f"Senha deve ter ao menos {cfg['min_length']} caracteres"

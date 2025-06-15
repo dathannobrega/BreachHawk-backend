@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 from django.conf import settings
 
@@ -20,7 +20,9 @@ from leaks.documents import LeakDoc
 logger = logging.getLogger(__name__)
 
 
-def _build_config(site: Site, url: str, payload: Dict | None) -> ScraperConfig:
+def _build_config(
+    site: Site, url: str, payload: Optional[Dict]
+) -> ScraperConfig:
     bypass = site.bypass_config or {}
     creds = site.credentials or None
     if payload:
@@ -51,7 +53,7 @@ def _build_config(site: Site, url: str, payload: Dict | None) -> ScraperConfig:
     )
 
 
-def run_scraper_for_site(site_id: int, payload: Dict | None = None) -> int:
+def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
     site = Site.objects.get(pk=site_id)
     if not site.enabled:
         logger.info("Site %s está desabilitado", site.url)

@@ -3,7 +3,7 @@ import abc
 import logging
 import random
 import time
-from typing import Dict, List, Dict as DictType
+from typing import Dict, List, Dict as DictType, Optional
 
 import requests
 from requests import RequestException
@@ -79,7 +79,7 @@ class BaseScraper(abc.ABC):
             return html
 
     def fetch(self, config: ScraperConfig) -> str:
-        last_exc: Exception | None = None
+        last_exc: Optional[Exception] = None
         for attempt in range(config.tor.max_retries + 1):
             if attempt:
                 try:
