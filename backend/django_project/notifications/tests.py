@@ -1,5 +1,9 @@
 import pytest
+from accounts.models import PlatformUser
+from core.token_utils import generate_unsubscribe_token
 from django.urls import reverse
+from rest_framework.test import APIClient
+
 from .models import SMTPConfig, Webhook
 from .serializers import SMTPConfigSerializer
 
@@ -71,3 +75,28 @@ def test_smtp_test_email_endpoint(auth_client, monkeypatch):
     assert resp.status_code == 200
     assert resp.data["success"] is True
     assert captured["arg"] == "t@example.com"
+
+
+@pytest.mark.django_db
+def test_unsubscribe_endpoint():
+    user = PlatformUser.objects.create_user(
+        username="joe", email="j@x.com", password="pass"
+    )
+    token = generate_unsubscribe_token(user.id)
+
+    client = APIClient()
+    url = reverse("unsubscribe")
+    resp = client.post(url, {"token": token}, format="json")
+
+    assert resp.status_code == 200
+    user.refresh_from_db()
+    assert user.is_subscribed is False
+
+
+@pytest.mark.django_db
+def test_unsubscribe_endpoint_bad_token():
+    client = APIClient()
+    url = reverse("unsubscribe")
+    resp = client.post(url, {"token": "bad"}, format="json")
+
+    assert resp.status_code == 400
