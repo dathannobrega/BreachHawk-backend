@@ -11,5 +11,15 @@ class SMTPConfigView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAdminOrPlatformAdmin]
 
     def get_object(self):
-        obj, _ = SMTPConfig.objects.get_or_create(id=1)
+        obj = SMTPConfig.objects.first()
+        if obj is None:
+            from django.conf import settings
+
+            obj = SMTPConfig.objects.create(
+                host=settings.SMTP_HOST,
+                port=settings.SMTP_PORT,
+                username=settings.SMTP_USER,
+                password=settings.SMTP_PASS,
+                from_email=settings.SMTP_USER,
+            )
         return obj
