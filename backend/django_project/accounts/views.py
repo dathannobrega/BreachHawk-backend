@@ -65,6 +65,9 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]  # Allow unauthenticated access
+    authentication_classes = []      # No authentication required for login
+
     def post(self, request):
         username = request.data.get("username") or request.data.get("email")
         password = request.data.get("password")
