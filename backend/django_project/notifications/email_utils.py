@@ -50,7 +50,7 @@ def send_test_email(to_email: str) -> None:
         "emails/test_email.html",
         {
             "subject": subject,
-            "unsubscribe_url": "https://yourdomain.com/unsubscribe",
+            "unsubscribe_url": "https://www.protexion.cloud/unsubscribe",
         },
     )
     text_content = "Seu servidor de e-mail está funcionando corretamente."
@@ -69,7 +69,7 @@ def send_alert_email(to_email: str, leak: dict) -> None:
             "leak_date": leak["date"],
             "description": leak["description"],
             "leak_url": leak["link"],
-            "unsubscribe_url": "https://yourdomain.com/unsubscribe",
+            "unsubscribe_url": "https://www.protexion.cloud/unsubscribe",
         },
     )
     text_content = (
@@ -96,7 +96,7 @@ def send_password_reset_email(
             "subject": subject,
             "user_name": user_name,
             "reset_link": reset_link,
-            "unsubscribe_url": "https://yourdomain.com/unsubscribe",
+            "unsubscribe_url": "https://www.protexion.cloud/unsubscribe",
         },
     )
     text_content = (
