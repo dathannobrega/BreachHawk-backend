@@ -77,4 +77,4 @@ volumes:
 
 networks:
   breachhawk-network:
-    external: true
+    external: false
