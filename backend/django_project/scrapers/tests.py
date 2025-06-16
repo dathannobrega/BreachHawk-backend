@@ -52,7 +52,11 @@ def test_upload_list_delete_scraper(auth_client, tmp_path):
         "        return []\n"
     )
     with script.open("rb") as f:
-        resp = auth_client.post(reverse("scraper-upload"), {"file": f}, format="multipart")
+        resp = auth_client.post(
+            reverse("scraper-upload"),
+            {"file": f},
+            format="multipart",
+        )
     assert resp.status_code == 201
     assert resp.data["slug"] == "dummy"
 

@@ -15,5 +15,9 @@ router.register(r"snapshots", SnapshotViewSet)
 urlpatterns = [
     path("upload/", ScraperUploadView.as_view(), name="scraper-upload"),
     path("scrapers/", ScraperListView.as_view(), name="scraper-list"),
-    path("scrapers/<slug:slug>/", ScraperDeleteView.as_view(), name="scraper-delete"),
+    path(
+        "scrapers/<slug:slug>/",
+        ScraperDeleteView.as_view(),
+        name="scraper-delete",
+    ),
 ] + router.urls

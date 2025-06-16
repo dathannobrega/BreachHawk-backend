@@ -38,3 +38,15 @@ def test_site_api_create_list(auth_client):
     resp = auth_client.get(url)
     assert resp.status_code == 200
     assert resp.data[0]["name"] == "A"
+
+
+@pytest.mark.django_db
+def test_telegram_account_list_endpoint(auth_client):
+    TelegramAccount.objects.create(
+        api_id=123,
+        api_hash="abc",
+        phone="+1111111",
+    )
+    resp = auth_client.get(reverse("telegram-account-list"))
+    assert resp.status_code == 200
+    assert resp.data[0]["api_id"] == 123
