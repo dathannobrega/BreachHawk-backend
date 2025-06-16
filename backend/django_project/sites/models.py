@@ -71,6 +71,7 @@ class TelegramAccount(models.Model):
     api_id = models.IntegerField()
     api_hash = models.CharField(max_length=255)
     session_string = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=32, blank=True, null=True)
 
     def __str__(self) -> str:  # pragma: no cover
         return f"Account {self.id}"
