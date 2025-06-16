@@ -55,7 +55,7 @@ jobs:
   # 3) Deploy em servidor via self-hosted runner
   deploy:
     needs: test
-    runs-on: [self-hosted, linux, docker]
+    runs-on: [self-hosted, Linux, docker]
     steps:
       - name: Pull & deploy
         # Assumindo que o runner já tem docker-compose instalado
