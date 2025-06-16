@@ -50,3 +50,36 @@ def test_telegram_account_list_endpoint(auth_client):
     resp = auth_client.get(reverse("telegram-account-list"))
     assert resp.status_code == 200
     assert resp.data[0]["api_id"] == 123
+
+
+@pytest.mark.django_db
+def test_telegram_account_crud(auth_client):
+    url = reverse("telegram-account-list")
+    data = {
+        "api_id": 111,
+        "api_hash": "hash",
+        "session_string": "sess",
+        "phone": "+123",
+    }
+    create = auth_client.post(url, data, format="json")
+    assert create.status_code == 201
+    acc_id = create.data["id"]
+
+    detail = reverse("telegram-account-detail", args=[acc_id])
+    retrieve = auth_client.get(detail)
+    assert retrieve.status_code == 200
+    assert retrieve.data["api_id"] == 111
+
+    update_data = {
+        "api_id": 222,
+        "api_hash": "hash2",
+        "session_string": "sess2",
+        "phone": "+456",
+    }
+    update = auth_client.put(detail, update_data, format="json")
+    assert update.status_code == 200
+    assert update.data["api_id"] == 222
+
+    delete = auth_client.delete(detail)
+    assert delete.status_code == 204
+    assert TelegramAccount.objects.count() == 0

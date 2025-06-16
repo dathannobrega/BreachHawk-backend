@@ -1,4 +1,4 @@
-from rest_framework import viewsets, generics
+from rest_framework import generics, viewsets
 from accounts.authentication import JWTAuthentication
 from accounts.permissions import IsAdminOrPlatformAdmin, IsPlatformAdmin
 from .models import Site, TelegramAccount
@@ -12,7 +12,9 @@ class SiteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrPlatformAdmin]
 
 
-class TelegramAccountListView(generics.ListAPIView):
+class TelegramAccountViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing Telegram accounts."""
+
     queryset = TelegramAccount.objects.all()
     serializer_class = TelegramAccountSerializer
     authentication_classes = [JWTAuthentication]
