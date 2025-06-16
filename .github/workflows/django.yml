@@ -61,7 +61,7 @@ jobs:
         # Assumindo que o runner já tem docker-compose instalado
         run: |
           cd /home/breachhawk/BreachHawk-backend
-          docker compose up -d --build
+          docker compose -f .\docker\docker-compose.yml up -d --build
           # opcional: roda migrations e collectstatic
           docker compose exec backend python manage.py migrate --noinput
           docker compose exec backend python manage.py collectstatic --noinput
