@@ -78,3 +78,7 @@ services:
 volumes:
   pgdata:
   mongodata:
+
+networks:
+  breachhawk-network:
+    external: true
