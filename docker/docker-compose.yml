@@ -28,10 +28,6 @@ services:
       - ./environments/.env.production
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: strongpassword
-      POSTGRES_DB: breach_db
 
   tor:
     extends:
