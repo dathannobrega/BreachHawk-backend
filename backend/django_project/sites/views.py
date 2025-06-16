@@ -18,4 +18,4 @@ class TelegramAccountViewSet(viewsets.ModelViewSet):
     queryset = TelegramAccount.objects.all()
     serializer_class = TelegramAccountSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsPlatformAdmin]
+    permission_classes = [IsAdminOrPlatformAdmin]
