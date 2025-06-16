@@ -6,5 +6,9 @@ router = DefaultRouter()
 router.register(r"", SiteViewSet)
 
 urlpatterns = [
-    path("telegram-accounts/", TelegramAccountListView.as_view(), name="telegram-account-list"),
+    path(
+        "telegram-accounts/",
+        TelegramAccountListView.as_view(),
+        name="telegram-account-list",
+    ),
 ] + router.urls
