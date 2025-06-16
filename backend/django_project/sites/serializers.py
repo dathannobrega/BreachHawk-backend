@@ -20,6 +20,13 @@ class SiteSerializer(serializers.ModelSerializer):
 
 
 class TelegramAccountSerializer(serializers.ModelSerializer):
+    """Serializer for CRUD operations on Telegram accounts."""
+
+    session_string = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, allow_null=True
+    )
+
     class Meta:
         model = TelegramAccount
-        fields = ["id", "api_id", "api_hash", "phone"]
+        fields = ["id", "api_id", "api_hash", "session_string", "phone"]
+        extra_kwargs = {"session_string": {"required": False}}

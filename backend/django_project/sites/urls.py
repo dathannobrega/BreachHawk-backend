@@ -1,14 +1,11 @@
-from django.urls import path
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import SiteViewSet, TelegramAccountListView
+from .views import SiteViewSet, TelegramAccountViewSet
 
 router = DefaultRouter()
-router.register(r"", SiteViewSet)
+router.register(r"telegram-accounts", TelegramAccountViewSet, basename="telegram-account")
+router.register(r"", SiteViewSet, basename="site")
 
 urlpatterns = [
-    path(
-        "telegram-accounts/",
-        TelegramAccountListView.as_view(),
-        name="telegram-account-list",
-    ),
-] + router.urls
+    path("", include(router.urls)),
+]
