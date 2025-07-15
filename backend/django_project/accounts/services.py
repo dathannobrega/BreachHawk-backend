@@ -1,4 +1,6 @@
 import re
+
+import requests
 from django.conf import settings
 from typing import Optional
 from .models import PasswordPolicy
@@ -35,4 +37,21 @@ def validate_password(password: str) -> Optional[str]:
         return "Senha deve conter número"
     if cfg["require_symbols"] and not re.search(r"[^A-Za-z0-9]", password):
         return "Senha deve conter símbolo"
+    return None
+
+def get_location_from_ip(ip: str | None) -> str | None:
+    """Returns a human readable location from an IP using ipapi.co"""
+    if not ip:
+        return None
+    try:
+        resp = requests.get(f"https://ipapi.co/{ip}/json/", timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            city = data.get("city")
+            region = data.get("region")
+            country = data.get("country_name")
+            parts = [p for p in [city, region, country] if p]
+            return ", ".join(parts) if parts else None
+    except Exception:
+        pass
     return None
