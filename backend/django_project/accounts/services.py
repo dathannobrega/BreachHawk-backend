@@ -39,6 +39,7 @@ def validate_password(password: str) -> Optional[str]:
         return "Senha deve conter símbolo"
     return None
 
+
 def get_location_from_ip(ip: str | None) -> str | None:
     """Returns a human readable location from an IP using ipapi.co"""
     if not ip:

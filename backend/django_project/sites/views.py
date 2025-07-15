@@ -1,6 +1,6 @@
-from rest_framework import generics, viewsets
+from rest_framework import viewsets
 from accounts.authentication import JWTAuthentication
-from accounts.permissions import IsAdminOrPlatformAdmin, IsPlatformAdmin
+from accounts.permissions import IsAdminOrPlatformAdmin
 from .models import Site, TelegramAccount
 from .serializers import SiteSerializer, TelegramAccountSerializer
 

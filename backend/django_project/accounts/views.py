@@ -1,6 +1,4 @@
 from datetime import datetime, timezone
-
-from requests import Request
 from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -85,10 +83,15 @@ class LoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         ip = get_client_ip(request)
-        device=request.headers.get("user-agent")
+        device = request.headers.get("user-agent")
         location = get_location_from_ip(ip)
         LoginHistory.objects.create(
-            user=user, timestamp=datetime.now(timezone.utc), success=True,device=device,location=location,ip_address=ip
+            user=user,
+            timestamp=datetime.now(timezone.utc),
+            success=True,
+            device=device,
+            location=location,
+            ip_address=ip
         )
         UserSession.objects.create(user=user, token=access_token)
         data = PlatformUserSerializer(user).data
