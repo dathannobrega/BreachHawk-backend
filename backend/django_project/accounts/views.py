@@ -93,7 +93,14 @@ class LoginView(APIView):
             location=location,
             ip_address=ip
         )
-        UserSession.objects.create(user=user, token=access_token)
+        # Nao estou duplicando dado aqui?, device,ip e location
+        UserSession.objects.create(
+            user=user,
+            token=access_token,
+            device=device,
+            location=location,
+            ip_address=ip
+        )
         data = PlatformUserSerializer(user).data
         return Response({
             "access": access_token,
