@@ -238,12 +238,20 @@ SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 
 # Get CORS allowed origins from environment variable
-cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_env.split(",")]
+cors_origins_env = os.environ.get(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:3000"
+)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() for origin in cors_origins_env.split(",")
+]
 
 # Get CSRF trusted origins from environment variable
-csrf_origins_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:3000")
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(",")]
+csrf_origins_env = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS", "http://localhost:3000"
+)
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in csrf_origins_env.split(",")
+]
 
 CORS_ALLOW_ALL_ORIGINS = False  # Allow all origins in development
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies in cross-origin requests
