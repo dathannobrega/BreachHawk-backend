@@ -23,7 +23,7 @@ from .serializers import (
 from .authentication import JWTAuthentication
 from .permissions import IsPlatformAdmin
 from .services import get_location_from_ip
-from ..utils.get_ip import get_client_ip
+from utils.get_ip import get_client_ip
 
 oauth = OAuth()
 oauth.register(
