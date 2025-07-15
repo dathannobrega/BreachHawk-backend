@@ -42,3 +42,5 @@ backend/django_project/db.sqlite3
 
 backend/django_project/media/
 backend/django_project/static
+
+setup.cfg

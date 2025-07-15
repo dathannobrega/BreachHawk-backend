@@ -83,4 +83,3 @@ def test_telegram_account_crud(auth_client):
     delete = auth_client.delete(detail)
     assert delete.status_code == 204
     assert TelegramAccount.objects.count() == 0
-
