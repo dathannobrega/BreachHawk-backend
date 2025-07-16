@@ -26,14 +26,25 @@ def test_telegram_account_str():
 @pytest.mark.django_db
 def test_site_serializer():
     site = Site.objects.create(name="MySite", url="http://s.com")
+    SiteLink.objects.create(site=site, url="http://s.com")
     data = SiteSerializer(site).data
     assert data["name"] == "MySite"
+    assert data["url"] == "http://s.com"
+    assert data["links"][0]["url"] == "http://s.com"
 
 
 @pytest.mark.django_db
 def test_site_api_create_list(auth_client):
     url = reverse("site-list")
-    resp = auth_client.post(url, {"name": "A", "links": []}, format="json")
+    data = {
+        "name": "A",
+        "url": "http://example.com",
+        "links": [
+            {"url": "http://example.com"},
+            {"url": "http://b.com"},
+        ],
+    }
+    resp = auth_client.post(url, data, format="json")
     assert resp.status_code == 201
     resp = auth_client.get(url)
     assert resp.status_code == 200
