@@ -1,14 +1,20 @@
+"""Celery application configuration and task definitions."""
+
 import os
+
+import django
 from celery import Celery, states
 from celery.exceptions import Ignore
 from django.conf import settings
 import structlog
 
 from core.logging_conf import configure_logging
-from scrapers.service import run_scraper_for_site
-from sites.models import Site
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "breachhawk.settings")
+django.setup()
+
+from scrapers.service import run_scraper_for_site
+from sites.models import Site
 
 configure_logging()
 logger = structlog.get_logger(__name__)
