@@ -1,10 +1,19 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.authentication import JWTAuthentication
 from accounts.permissions import IsAdminOrPlatformAdmin
 from .models import ScrapeLog, Snapshot
-from .serializers import ScrapeLogSerializer, SnapshotSerializer
+from .serializers import (
+    ScrapeLogSerializer,
+    SnapshotSerializer,
+    TaskResponseSerializer,
+    TaskStatusSerializer,
+)
+from .service import schedule_scraper, get_task_status
+from django.shortcuts import get_object_or_404
+from sites.models import Site
+from rest_framework import status
 
 import os
 import uuid
@@ -93,3 +102,42 @@ class ScraperDeleteView(APIView):
         os.remove(path)
         registry.pop(slug, None)
         return Response(status=204)
+
+
+class RunScraperView(APIView):
+    """Trigger an asynchronous scrape for a site."""
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminOrPlatformAdmin]
+
+    def post(self, request, site_id: int) -> Response:
+        site = get_object_or_404(Site, pk=site_id)
+        async_result = schedule_scraper(site.id)
+        data = TaskResponseSerializer(
+            {"task_id": async_result.id, "status": async_result.state}
+        ).data
+        return Response(data, status=status.HTTP_202_ACCEPTED)
+
+
+class TaskStatusView(APIView):
+    """Retrieve the status of a Celery task."""
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminOrPlatformAdmin]
+
+    def get(self, request, task_id: str) -> Response:
+        data = TaskStatusSerializer(get_task_status(task_id)).data
+        return Response(data)
+
+
+class SiteLogListView(generics.ListAPIView):
+    """List scrape logs for a specific site."""
+
+    serializer_class = ScrapeLogSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminOrPlatformAdmin]
+
+    def get_queryset(self):
+        site_id = self.kwargs["site_id"]
+        queryset = ScrapeLog.objects.filter(site_id=site_id)
+        return queryset.order_by("-created_at")

@@ -66,3 +66,62 @@ def test_upload_list_delete_scraper(auth_client, tmp_path):
 
     resp = auth_client.delete(reverse("scraper-delete", args=["dummy"]))
     assert resp.status_code == 204
+
+
+@pytest.mark.django_db
+def test_run_scraper_endpoint(auth_client, monkeypatch):
+    site = Site.objects.create(name="S", url="http://s.com")
+
+    class DummyRes:
+        id = "abc"
+        state = "PENDING"
+
+    captured = {}
+
+    def fake_schedule(site_id):
+        captured["id"] = site_id
+        return DummyRes()
+
+    monkeypatch.setattr("scrapers.views.schedule_scraper", fake_schedule)
+
+    url = reverse("scraper-run", args=[site.id])
+    resp = auth_client.post(url)
+
+    assert resp.status_code == 202
+    assert resp.data["task_id"] == "abc"
+    assert captured["id"] == site.id
+
+
+@pytest.mark.django_db
+def test_task_status_endpoint(auth_client, monkeypatch):
+    class DummyAsync:
+        state = "SUCCESS"
+        result = {"inserted": 5}
+        info = None
+
+    def fake_async_result(task_id, app=None):
+        return DummyAsync()
+
+    monkeypatch.setattr("scrapers.service.AsyncResult", fake_async_result)
+
+    task_id = "11111111-1111-1111-1111-111111111111"
+    url = reverse("scraper-task-status", args=[task_id])
+    resp = auth_client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data["status"] == "SUCCESS"
+    assert resp.data["result"] == {"inserted": 5}
+
+
+@pytest.mark.django_db
+def test_site_log_list_endpoint(auth_client):
+    site1 = Site.objects.create(name="A", url="http://a.com")
+    site2 = Site.objects.create(name="B", url="http://b.com")
+    ScrapeLog.objects.create(site=site1, url="http://a.com", success=True)
+    ScrapeLog.objects.create(site=site2, url="http://b.com", success=False)
+
+    url = reverse("site-log-list", args=[site1.id])
+    resp = auth_client.get(url)
+
+    assert resp.status_code == 200
+    assert len(resp.data) == 1
