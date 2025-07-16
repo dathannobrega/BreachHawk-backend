@@ -119,4 +119,3 @@ def get_task_status(task_id: str) -> dict:
     result = AsyncResult(task_id, app=celery_app)
     info = result.result if result.state == states.SUCCESS else result.info
     return {"task_id": task_id, "status": result.state, "result": info}
-

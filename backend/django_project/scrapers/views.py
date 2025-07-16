@@ -139,4 +139,5 @@ class SiteLogListView(generics.ListAPIView):
 
     def get_queryset(self):
         site_id = self.kwargs["site_id"]
-        return ScrapeLog.objects.filter(site_id=site_id).order_by("-created_at")
+        queryset = ScrapeLog.objects.filter(site_id=site_id)
+        return queryset.order_by("-created_at")
