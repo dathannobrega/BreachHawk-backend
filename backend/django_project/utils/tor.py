@@ -5,7 +5,7 @@ from django.conf import settings
 
 def renew_tor_circuit() -> None:
     """Request a new TOR circuit using the control port."""
-    with Controller.from_port(port=settings.TOR_CONTROL_PORT) as ctrl:
+    with Controller.from_port(address=settings.TOR_CONTROL_HOST, port=settings.TOR_CONTROL_PORT) as ctrl
         if settings.TOR_CONTROL_PASSWORD:
             ctrl.authenticate(password=settings.TOR_CONTROL_PASSWORD)
         else:

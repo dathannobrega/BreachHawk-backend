@@ -197,6 +197,7 @@ MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb://mongo:27017")
 MONGODB_DB = os.environ.get("MONGODB_DB", "breach_db")
 MONGODB_USER = os.environ.get("MONGODB_USER", "admin")
 MONGODB_PASS = os.environ.get("MONGODB_PASS", "strongpassword")
+TOR_CONTROL_HOST = os.environ.get("TOR_CONTROL_HOST", "tor")
 TOR_CONTROL_PORT = int(os.environ.get("TOR_CONTROL_PORT", "9051"))
 TOR_CONTROL_PASSWORD = os.environ.get(
     "TOR_CONTROL_PASSWORD", "SUA_SENHA_FORTE"
