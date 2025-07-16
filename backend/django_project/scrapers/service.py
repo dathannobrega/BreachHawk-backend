@@ -16,9 +16,8 @@ from sites.models import Site, SiteMetrics
 from .models import ScrapeLog
 from leaks.mongo_utils import insert_leak
 from leaks.documents import LeakDoc
-from breachhawk import celery_app
 from celery.result import AsyncResult
-from celery import states
+from celery import states, current_app
 
 logger = logging.getLogger(__name__)
 
@@ -111,11 +110,11 @@ def schedule_scraper(site_id: int) -> AsyncResult:
         "bypassConfig": site.bypass_config,
         "credentials": site.credentials,
     }
-    return celery_app.send_task("scrape_site", args=[payload])
+    return current_app.send_task("scrape_site", args=[payload])
 
 
 def get_task_status(task_id: str) -> dict:
     """Return the status information for a Celery task."""
-    result = AsyncResult(task_id, app=celery_app)
+    result = AsyncResult(task_id, app=current_app)
     info = result.result if result.state == states.SUCCESS else result.info
     return {"task_id": task_id, "status": result.state, "result": info}
