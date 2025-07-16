@@ -17,6 +17,7 @@ from rest_framework import status
 
 import os
 import uuid
+from uuid import UUID
 import importlib.util
 import sys
 from . import registry
@@ -125,7 +126,7 @@ class TaskStatusView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminOrPlatformAdmin]
 
-    def get(self, request, task_id: str) -> Response:
+    def get(self, request, task_id: UUID) -> Response:
         data = TaskStatusSerializer(get_task_status(task_id)).data
         return Response(data)
 
