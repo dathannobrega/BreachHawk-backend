@@ -13,8 +13,8 @@ from core.logging_conf import configure_logging
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "breachhawk.settings")
 django.setup()
 
-from scrapers.service import run_scraper_for_site
-from sites.models import Site
+from scrapers.service import run_scraper_for_site  # noqa: E402
+from sites.models import Site  # noqa: E402
 
 configure_logging()
 logger = structlog.get_logger(__name__)
