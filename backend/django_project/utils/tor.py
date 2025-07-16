@@ -12,7 +12,10 @@ def renew_tor_circuit() -> None:
         ip_address(host)
     except ValueError:
         host = socket.gethostbyname(host)
-    with Controller.from_port(address=host, port=settings.TOR_CONTROL_PORT) as ctrl:
+    with Controller.from_port(
+        address=host,
+        port=settings.TOR_CONTROL_PORT,
+    ) as ctrl:
         if settings.TOR_CONTROL_PASSWORD:
             ctrl.authenticate(password=settings.TOR_CONTROL_PASSWORD)
         else:
