@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
+from uuid import UUID
 
 from django.conf import settings
 
@@ -113,8 +114,9 @@ def schedule_scraper(site_id: int) -> AsyncResult:
     return current_app.send_task("scrape_site", args=[payload])
 
 
-def get_task_status(task_id: str) -> dict:
+def get_task_status(task_id: Union[str, UUID]) -> dict:
     """Return the status information for a Celery task."""
-    result = AsyncResult(task_id, app=current_app)
+    task_id_str = str(task_id)
+    result = AsyncResult(task_id_str, app=current_app)
     info = result.result if result.state == states.SUCCESS else result.info
-    return {"task_id": task_id, "status": result.state, "result": info}
+    return {"task_id": task_id_str, "status": result.state, "result": info}
