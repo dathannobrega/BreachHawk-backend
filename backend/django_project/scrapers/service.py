@@ -53,6 +53,7 @@ def _build_config(
         credentials=creds_cfg,
         tor=tor,
         execution_options=exec_opts,
+        needs_js=site.needs_js,
     )
 
 

@@ -11,6 +11,7 @@ DATE_RX = re.compile(r"(\d{2}/\d{2}/\d{4})")
 
 class RansomHouseScraper(BaseScraper):
     slug = "ransomhouse"
+    JS_WAIT_SELECTOR = "div.cls_record"
 
     def parse(self, html: str) -> List[Dict]:
         soup = BeautifulSoup(html, "html.parser")

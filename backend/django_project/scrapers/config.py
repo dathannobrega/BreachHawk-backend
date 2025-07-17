@@ -38,3 +38,4 @@ class ScraperConfig:
     credentials: Optional[Credentials]
     tor: TorOptions
     execution_options: ExecutionOptions
+    needs_js: bool = False
