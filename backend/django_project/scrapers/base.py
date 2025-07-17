@@ -36,6 +36,7 @@ class BlockedByCaptcha(Exception):
 class BaseScraper(abc.ABC):
     slug: str
     TOR_PROXY = settings.TOR_PROXY
+    JS_WAIT_SELECTOR: Optional[str] = None
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -73,13 +74,35 @@ class BaseScraper(abc.ABC):
             await page.goto(
                 config.url,
                 timeout=config.execution_options.timeout_seconds * 1000,
+                wait_until="networkidle",
             )
+            if self.JS_WAIT_SELECTOR:
+                try:
+                    await page.wait_for_selector(
+                        self.JS_WAIT_SELECTOR,
+                        timeout=(
+                            config.execution_options.timeout_seconds * 1000
+                        ),
+                    )
+                except Exception:
+                    logger.debug(
+                        "Selector %s not found", self.JS_WAIT_SELECTOR
+                    )
             html = await page.content()
             await browser.close()
             return html
 
     def fetch(self, config: ScraperConfig) -> str:
         last_exc: Optional[Exception] = None
+        if config.needs_js:
+            try:
+                html = self._fetch_headless_sync(config)
+                self.last_retries = 0
+                return html
+            except Exception as exc:
+                last_exc = exc
+                self.last_retries = 0
+                raise last_exc
         for attempt in range(config.tor.max_retries + 1):
             if attempt:
                 try:
