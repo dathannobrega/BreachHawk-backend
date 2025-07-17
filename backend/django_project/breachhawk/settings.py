@@ -239,39 +239,30 @@ SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 
 # Get CORS allowed origins from environment variable
-cors_origins_env = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:3000"
-)
+cors_exact = os.getenv("CORS_ALLOWED_ORIGINS", "")
+cors_regex = os.getenv("CORS_ALLOWED_ORIGIN_REGEXES", "")
+
 CORS_ALLOWED_ORIGINS = [
-    origin.strip() for origin in cors_origins_env.split(",")
+    origin.strip()
+    for origin in cors_exact.split(",")
+    if origin.strip()
 ]
 
-# Get CSRF trusted origins from environment variable
-csrf_origins_env = os.environ.get(
-    "CSRF_TRUSTED_ORIGINS", "http://localhost:3000"
-)
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip() for origin in csrf_origins_env.split(",")
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    pattern.strip()
+    for pattern in cors_regex.split(",")
+    if pattern.strip()
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False  # Allow all origins in development
-CORS_ALLOW_CREDENTIALS = True  # Allow cookies in cross-origin requests
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
+# cookies/autenticação
+CORS_ALLOW_CREDENTIALS = True
+
+# métodos e headers
+CORS_ALLOW_METHODS = ["DELETE","GET","OPTIONS","PATCH","POST","PUT"]
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+    "accept","accept-encoding","authorization","content-type",
+    "dnt","origin","user-agent","x-csrftoken","x-requested-with",
 ]
+
+# mesma lista exata para CSRF
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
