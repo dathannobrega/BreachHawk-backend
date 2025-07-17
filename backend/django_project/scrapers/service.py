@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Dict, Optional, Union
 from uuid import UUID
@@ -19,6 +18,7 @@ from leaks.mongo_utils import insert_leak
 from leaks.documents import LeakDoc
 from celery.result import AsyncResult
 from celery import states, current_app
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
         inserted = 0
         for data in raw_leaks:
             doc = data if isinstance(data, LeakDoc) else LeakDoc(**data)
-            asyncio.run(insert_leak(doc))
+            insert_leak(doc)
             inserted += 1
 
         total_inserted += inserted
@@ -119,5 +119,7 @@ def get_task_status(task_id: Union[str, UUID]) -> dict:
     """Return the status information for a Celery task."""
     task_id_str = str(task_id)
     result = AsyncResult(task_id_str, app=current_app)
-    info = result.result if result.state == states.SUCCESS else result.info
+    info: Any = result.result if result.state == states.SUCCESS else result.info
+    if isinstance(info, BaseException):
+        info = str(info)
     return {"task_id": task_id_str, "status": result.state, "result": info}
