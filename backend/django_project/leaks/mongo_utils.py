@@ -74,5 +74,3 @@ def init_mongo_indexes() -> None:
             name="text_search",
         )
     INDEXES_INITIALIZED = True
-
-
