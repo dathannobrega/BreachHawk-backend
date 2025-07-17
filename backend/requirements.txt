@@ -26,3 +26,6 @@ djangorestframework
 djangorestframework-simplejwt
 django-cors-headers
 authlib
+
+# Celery
+httpx
