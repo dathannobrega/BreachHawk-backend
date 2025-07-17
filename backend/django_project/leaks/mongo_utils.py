@@ -63,7 +63,10 @@ def init_mongo_indexes() -> None:
     global INDEXES_INITIALIZED
     indexes = mongo_db.leaks.index_information()
     site_index_spec = [("site_id", 1)]
-    has_site_idx = any(index.get("key") == site_index_spec for index in indexes.values())
+    has_site_idx = any(
+        index.get("key") == site_index_spec
+        for index in indexes.values()
+    )
     if not has_site_idx:
         mongo_db.leaks.create_index("site_id", name="site_id_idx")
 
