@@ -115,3 +115,63 @@ def test_telegram_account_crud(auth_client):
     delete = auth_client.delete(detail)
     assert delete.status_code == 204
     assert TelegramAccount.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_site_update_preserves_link(auth_client):
+    site = Site.objects.create(name="A", url="http://a.com")
+    link = SiteLink.objects.create(site=site, url="http://a.com")
+
+    detail = reverse("site-detail", args=[site.id])
+    data = {
+        "name": "A1",
+        "url": "http://a.com",
+        "links": [{"id": link.id, "url": "http://a.com"}],
+        "type": site.type,
+        "auth_type": site.auth_type,
+        "captcha_type": site.captcha_type,
+        "scraper": site.scraper,
+        "needs_js": site.needs_js,
+        "enabled": site.enabled,
+        "bypass_config": site.bypass_config,
+        "credentials": site.credentials,
+        "telegram_account": None,
+    }
+
+    resp = auth_client.put(detail, data, format="json")
+    assert resp.status_code == 200, resp.data
+    site.refresh_from_db()
+    assert site.name == "A1"
+    assert site.links.count() == 1
+    assert site.links.first().id == link.id
+
+
+@pytest.mark.django_db
+def test_site_update_change_link_url(auth_client):
+    site = Site.objects.create(name="A", url="http://a.com")
+    link = SiteLink.objects.create(site=site, url="http://a.com")
+
+    detail = reverse("site-detail", args=[site.id])
+    data = {
+        "name": "A",  # unchanged
+        "url": "http://a.com",
+        "links": [{"id": link.id, "url": "http://new.com"}],
+        "type": site.type,
+        "auth_type": site.auth_type,
+        "captcha_type": site.captcha_type,
+        "scraper": site.scraper,
+        "needs_js": site.needs_js,
+        "enabled": site.enabled,
+        "bypass_config": site.bypass_config,
+        "credentials": site.credentials,
+        "telegram_account": None,
+    }
+
+    resp = auth_client.put(detail, data, format="json")
+    assert resp.status_code == 200, resp.data
+    site.refresh_from_db()
+    assert site.links.count() == 1
+    assert site.links.first().id == link.id
+    assert site.links.first().url == "http://new.com"
+
+
