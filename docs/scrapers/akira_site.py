@@ -1,5 +1,4 @@
 import re
-import asyncio
 from datetime import datetime, timezone
 from typing import List, Dict
 from urllib.parse import urljoin
@@ -24,7 +23,10 @@ class AkiraCLIScraper(BaseScraper):
             browser = await pw.chromium.launch(headless=True)
             kwargs = {}
             # aplica proxy TOR se necessário
-            if config.url.endswith(".onion") or config.bypass_config.use_proxies:
+            if (
+                config.url.endswith(".onion")
+                or config.bypass_config.use_proxies
+            ):
                 kwargs["proxy"] = {"server": self.TOR_PROXY}
             context = await browser.new_context(**kwargs)
             page = await context.new_page()
