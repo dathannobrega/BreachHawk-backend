@@ -22,7 +22,7 @@ class Site(models.Model):
         PASTE = "paste", "Paste"
 
     name = models.CharField(max_length=255)
-    url = models.URLField(unique=True, default="")
+    url = models.URLField(unique=True, blank=True, null=True)
     type = models.CharField(
         max_length=20, choices=SiteType.choices, default=SiteType.WEBSITE
     )
@@ -50,7 +50,7 @@ class SiteLink(models.Model):
     site = models.ForeignKey(
         Site, related_name="links", on_delete=models.CASCADE
     )
-    url = models.URLField(unique=True, default="")
+    url = models.URLField(unique=True, blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

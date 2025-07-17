@@ -62,15 +62,19 @@ def init_mongo_indexes() -> None:
     """Ensure MongoDB indexes needed by the application exist."""
     global INDEXES_INITIALIZED
     indexes = mongo_db.leaks.index_information()
-    if "site_id_idx" not in indexes:
+    site_index_spec = [("site_id", 1)]
+    has_site_idx = any(index.get("key") == site_index_spec for index in indexes.values())
+    if not has_site_idx:
         mongo_db.leaks.create_index("site_id", name="site_id_idx")
-    if "text_search" not in indexes:
-        mongo_db.leaks.create_index(
-            [
-                ("company", "text"),
-                ("information", "text"),
-                ("comment", "text"),
-            ],
-            name="text_search",
-        )
+
+    text_index_spec = [
+        ("company", "text"),
+        ("information", "text"),
+        ("comment", "text"),
+    ]
+    has_text_idx = any(
+        index.get("key") == text_index_spec for index in indexes.values()
+    )
+    if not has_text_idx:
+        mongo_db.leaks.create_index(text_index_spec, name="text_search")
     INDEXES_INITIALIZED = True
