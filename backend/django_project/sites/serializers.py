@@ -34,6 +34,8 @@ class SiteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         links_data = validated_data.pop("links", [])
+        if not validated_data.get("url") and links_data:
+            validated_data["url"] = links_data[0]["url"]
         site = Site.objects.create(**validated_data)
         for link in links_data:
             SiteLink.objects.create(site=site, **link)
@@ -41,6 +43,8 @@ class SiteSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         links_data = validated_data.pop("links", None)
+        if not validated_data.get("url") and links_data and not instance.url:
+            validated_data["url"] = links_data[0]["url"]
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

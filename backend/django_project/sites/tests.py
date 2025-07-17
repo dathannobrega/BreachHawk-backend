@@ -52,6 +52,27 @@ def test_site_api_create_list(auth_client):
 
 
 @pytest.mark.django_db
+def test_site_create_without_url(auth_client):
+    endpoint = reverse("site-list")
+    data = {
+        "name": "Akira",
+        "links": [{"url": "http://akira.onion"}],
+        "type": "website",
+        "auth_type": "none",
+        "captcha_type": "none",
+        "scraper": "akira_cli",
+        "needs_js": True,
+        "enabled": True,
+        "bypass_config": {"use_proxies": True},
+    }
+    resp = auth_client.post(endpoint, data, format="json")
+    assert resp.status_code == 201
+    site = Site.objects.get(id=resp.data["id"])
+    assert site.url == "http://akira.onion"
+    assert site.links.count() == 1
+
+
+@pytest.mark.django_db
 def test_telegram_account_list_endpoint(auth_client):
     TelegramAccount.objects.create(
         api_id=123,
