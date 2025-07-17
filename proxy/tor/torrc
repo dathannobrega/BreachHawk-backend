@@ -5,6 +5,6 @@ SocksPort 0.0.0.0:9050
 Log notice stdout
 
 ## (opcional) habilitar ControlPort caso queira NEWNYM
-ControlPort 9051
-HashedControlPassword 16:C1E070221028128D60BCAEA9E026EBB86142FA97854B68DADFD7668857
+ControlPort 0.0.0.0:9051
+HashedControlPassword 16:E9216F168B3FD58D60F26726AE91317769E5578A89098F66727EEDE2BA
 ## gerar senha com tor --hash-password SUA_SENHA_FORTE
