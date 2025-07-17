@@ -80,10 +80,14 @@ class BaseScraper(abc.ABC):
                 try:
                     await page.wait_for_selector(
                         self.JS_WAIT_SELECTOR,
-                        timeout=config.execution_options.timeout_seconds * 1000,
+                        timeout=(
+                            config.execution_options.timeout_seconds * 1000
+                        ),
                     )
                 except Exception:
-                    logger.debug("Selector %s not found", self.JS_WAIT_SELECTOR)
+                    logger.debug(
+                        "Selector %s not found", self.JS_WAIT_SELECTOR
+                    )
             html = await page.content()
             await browser.close()
             return html
