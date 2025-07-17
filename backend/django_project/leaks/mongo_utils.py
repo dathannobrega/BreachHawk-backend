@@ -8,7 +8,10 @@ mongo_db = client[settings.MONGODB_DB]
 
 
 async def insert_leak(doc: LeakDoc) -> str:
-    result = await mongo_db.leaks.insert_one(doc.model_dump())
+    """Insert a leak document into MongoDB."""
+    # ``model_dump(mode="json")`` ensures all fields are JSON serialisable,
+    # converting types like ``HttpUrl`` to plain strings.
+    result = await mongo_db.leaks.insert_one(doc.model_dump(mode="json"))
     return str(result.inserted_id)
 
 
