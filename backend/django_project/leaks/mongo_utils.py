@@ -1,11 +1,7 @@
-+10
--10
-
 """MongoDB utility helpers."""
 
 from pymongo import MongoClient
 from django.conf import settings
-
 from .documents import LeakDoc
 
 client = MongoClient(settings.MONGODB_URI)
@@ -20,8 +16,12 @@ def insert_leak(doc: LeakDoc) -> str:
     return str(result.inserted_id)
 
 
-def find_leaks_by_site(site_id: int, skip: int = 0, limit: int = 50) -> list[LeakDoc]:
-    cursor = mongo_db.leaks.find({"site_id": site_id}).skip(skip).limit(limit)
+def find_leaks_by_site(
+    site_id: int, skip: int = 0, limit: int = 50
+) -> list[LeakDoc]:
+    cursor = mongo_db.leaks.find({"site_id": site_id}).skip(skip).limit(
+        limit
+    )
     docs = list(cursor)
     return [LeakDoc(**d) for d in docs]
 

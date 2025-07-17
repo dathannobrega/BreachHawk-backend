@@ -119,7 +119,9 @@ def get_task_status(task_id: Union[str, UUID]) -> dict:
     """Return the status information for a Celery task."""
     task_id_str = str(task_id)
     result = AsyncResult(task_id_str, app=current_app)
-    info: Any = result.result if result.state == states.SUCCESS else result.info
+    info: Any = (
+        result.result if result.state == states.SUCCESS else result.info
+    )
     if isinstance(info, BaseException):
         info = str(info)
     return {"task_id": task_id_str, "status": result.state, "result": info}
