@@ -64,9 +64,11 @@ class ScraperUploadView(APIView):
 
         before = set(registry.keys())
         try:
-            spec = importlib.util.spec_from_file_location(filename[:-3], path)
+            # monte aqui o nome qualificado igual ao startup loader:
+            mod_name = f"scrapers.custom.{filename[:-3]}"
+            spec = importlib.util.spec_from_file_location(mod_name, path)
             module = importlib.util.module_from_spec(spec)
-            sys.modules[spec.name] = module
+            sys.modules[mod_name] = module
             spec.loader.exec_module(module)
         except Exception as exc:
             os.remove(path)
