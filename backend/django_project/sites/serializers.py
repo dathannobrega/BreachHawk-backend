@@ -62,7 +62,10 @@ class SiteSerializer(serializers.ModelSerializer):
                         obj.save()
                         existing_ids.append(obj.id)
                         continue
-                obj = SiteLink.objects.create(site=instance, url=link.get("url"))
+                obj = SiteLink.objects.create(
+                    site=instance,
+                    url=link.get("url"),
+                )
                 existing_ids.append(obj.id)
 
             # remove links not present in the request

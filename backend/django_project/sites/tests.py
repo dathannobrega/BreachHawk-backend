@@ -173,5 +173,3 @@ def test_site_update_change_link_url(auth_client):
     assert site.links.count() == 1
     assert site.links.first().id == link.id
     assert site.links.first().url == "http://new.com"
-
-
