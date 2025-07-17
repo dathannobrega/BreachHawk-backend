@@ -10,6 +10,8 @@ services:
       context: ../backend
     depends_on:
       - db
+    volumes:
+      - scrapers:/app/scrapers/custom
     networks:
       - breachhawk-network
 
@@ -38,6 +40,8 @@ services:
       - tor
     environment:
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+    volumes:
+      - scrapers:/app/scrapers/custom
     networks:
       - breachhawk-network
 
@@ -49,6 +53,8 @@ services:
     depends_on:
       - backend
       - backend-worker
+    volumes:
+      - scrapers:/app/scrapers/custom
     networks:
       - breachhawk-network
 
@@ -63,6 +69,7 @@ services:
 volumes:
   pgdata:
   mongodata:
+  scrapers:
 
 networks:
   breachhawk-network:
