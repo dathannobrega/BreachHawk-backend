@@ -96,3 +96,18 @@ class PasswordResetToken(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover - simple repr
         return f"{self.user} - {self.token}"
+
+
+class UserSearchQuota(models.Model):
+    """Tracks how many search requests a user can perform."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="search_quota",
+    )
+    remaining = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:  # pragma: no cover - simple repr
+        return f"{self.user} - {self.remaining}"

@@ -26,5 +26,23 @@ def find_leaks_by_site(
     return [LeakDoc(**d) for d in docs]
 
 
+def search_leaks(query: str, skip: int = 0, limit: int = 50) -> list[LeakDoc]:
+    """Return leaks matching the given text query."""
+    cursor = (
+        mongo_db.leaks.find({"$text": {"$search": query}})
+        .skip(skip)
+        .limit(limit)
+    )
+    docs = list(cursor)
+    return [LeakDoc(**d) for d in docs]
+
+
 def init_mongo_indexes() -> None:
     mongo_db.leaks.create_index("site_id")
+    mongo_db.leaks.create_index(
+        [
+            ("company", "text"),
+            ("information", "text"),
+            ("comment", "text"),
+        ]
+    )
