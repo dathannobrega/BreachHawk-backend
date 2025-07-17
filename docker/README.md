@@ -84,5 +84,6 @@ docker build -t breachhawkfrontend:latest .
 - `pgdata`: Dados do PostgreSQL
 - `mongodata`: Dados do MongoDB (produção)
 - `mongodata_test`: Dados do MongoDB (teste)
+- `scrapers`: Scrapers personalizados enviados via API
 
 Estes volumes são persistentes e mantêm os dados mesmo quando os contêineres são recriados.
