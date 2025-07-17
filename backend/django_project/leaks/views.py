@@ -32,5 +32,5 @@ class LeakSearchView(APIView):
         docs = search_leaks(query)
         quota.remaining -= 1
         quota.save(update_fields=["remaining", "updated_at"])
-        data = [doc.dict() for doc in docs]
+        data = [doc.model_dump(mode="json") for doc in docs]
         return Response({"results": data}, status=status.HTTP_200_OK)
