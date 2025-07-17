@@ -7,11 +7,15 @@ from .documents import LeakDoc
 client = MongoClient(settings.MONGODB_URI)
 mongo_db = client[settings.MONGODB_DB]
 
+INDEXES_INITIALIZED = False
+
 
 def insert_leak(doc: LeakDoc) -> str:
     """Insert a leak document into MongoDB."""
     # ``model_dump(mode="json")`` ensures all fields are JSON serialisable,
     # converting types like ``HttpUrl`` to plain strings.
+    if not INDEXES_INITIALIZED:
+        init_mongo_indexes()
     result = mongo_db.leaks.insert_one(doc.model_dump(mode="json"))
     return str(result.inserted_id)
 
@@ -19,6 +23,8 @@ def insert_leak(doc: LeakDoc) -> str:
 def find_leaks_by_site(
     site_id: int, skip: int = 0, limit: int = 50
 ) -> list[LeakDoc]:
+    if not INDEXES_INITIALIZED:
+        init_mongo_indexes()
     cursor = mongo_db.leaks.find({"site_id": site_id}).skip(skip).limit(
         limit
     )
@@ -27,9 +33,24 @@ def find_leaks_by_site(
 
 
 def search_leaks(query: str, skip: int = 0, limit: int = 50) -> list[LeakDoc]:
-    """Return leaks matching the given text query."""
+    """Return leaks matching the given text query.
+
+    The search is case-insensitive and performs a ``contains`` lookup across
+    the ``company``, ``information`` and ``comment`` fields.
+    """
+    if not INDEXES_INITIALIZED:
+        init_mongo_indexes()
+    regex = {"$regex": query, "$options": "i"}
     cursor = (
-        mongo_db.leaks.find({"$text": {"$search": query}})
+        mongo_db.leaks.find(
+            {
+                "$or": [
+                    {"company": regex},
+                    {"information": regex},
+                    {"comment": regex},
+                ]
+            }
+        )
         .skip(skip)
         .limit(limit)
     )
@@ -38,11 +59,18 @@ def search_leaks(query: str, skip: int = 0, limit: int = 50) -> list[LeakDoc]:
 
 
 def init_mongo_indexes() -> None:
-    mongo_db.leaks.create_index("site_id")
-    mongo_db.leaks.create_index(
-        [
-            ("company", "text"),
-            ("information", "text"),
-            ("comment", "text"),
-        ]
-    )
+    """Ensure MongoDB indexes needed by the application exist."""
+    global INDEXES_INITIALIZED
+    indexes = mongo_db.leaks.index_information()
+    if "site_id_idx" not in indexes:
+        mongo_db.leaks.create_index("site_id", name="site_id_idx")
+    if "text_search" not in indexes:
+        mongo_db.leaks.create_index(
+            [
+                ("company", "text"),
+                ("information", "text"),
+                ("comment", "text"),
+            ],
+            name="text_search",
+        )
+    INDEXES_INITIALIZED = True
