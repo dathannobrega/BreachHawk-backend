@@ -75,8 +75,13 @@ def init_mongo_indexes() -> None:
         ("information", "text"),
         ("comment", "text"),
     ]
+    expected_weights = {
+        "company": 1,
+        "information": 1,
+        "comment": 1,
+    }
     has_text_idx = any(
-        index.get("key") == text_index_spec for index in indexes.values()
+        index.get("weights") == expected_weights for index in indexes.values()
     )
     if not has_text_idx:
         mongo_db.leaks.create_index(text_index_spec, name="text_search")
