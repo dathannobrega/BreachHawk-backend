@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 from datetime import datetime, timezone
 from typing import List, Dict
 from urllib.parse import urljoin
@@ -15,14 +16,11 @@ from playwright.async_api import (
 from scrapers.base import BaseScraper
 from scrapers.config import ScraperConfig
 
-# Configuração de logging
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s/%(name)s: %(message)s",
-    level=logging.DEBUG,
-)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 CLI_COMMAND = "leaks"
+URL_RX = re.compile(r"(https?://[^\]\s]+)")
 
 
 class AkiraSiteScraper(BaseScraper):
@@ -36,102 +34,72 @@ class AkiraSiteScraper(BaseScraper):
             logger.info("Usando proxy TOR: %s", launch_args["proxy"])
 
         async with async_playwright() as pw:
-            logger.debug("Playwright iniciado")
             browser = await pw.chromium.launch(**launch_args)
-            logger.debug("Browser lançado")
             context = await browser.new_context(ignore_https_errors=True)
-            logger.debug("Contexto criado (ignore_https_errors=True)")
             page = await context.new_page()
-            logger.debug("Nova página aberta")
 
             try:
-                # 1) Carrega a página inicial
-                logger.info("Navegando para %s …", config.url)
+                # Navega e dispara 'leaks'
                 await page.goto(
                     config.url,
                     wait_until="domcontentloaded",
                     timeout=config.execution_options.timeout_seconds * 1000,
                 )
-                logger.info("Página inicial carregada")
-
-                # 2) Lê CSRF token imediatamente
-                locator = page.locator('meta[name="csrf-token"]')
-                csrf_token = await locator.get_attribute("content")
-                logger.info("CSRF token capturado: %s", csrf_token)
-
-                # 3) (Opcional) Liste cookies para debug
-                cookies = await context.cookies()
-                logger.debug("Cookies no contexto: %s", cookies)
-
-                # 4) Dispara o comando CLI no terminal
-                logger.info("Digitando comando CLI: %r", CLI_COMMAND)
                 await page.keyboard.type(CLI_COMMAND)
                 await page.keyboard.press("Enter")
-                logger.info("Comando enviado, aguardando resposta do /l")
 
-                # 5) Faz a requisição a /l com headers apropriados
-                url_l = f"{config.url.rstrip('/')}/l"
-                headers = {
-                    "X-CSRF-Token": csrf_token or "",
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                }
-                logger.debug("Enviando GET %s com headers: %s", url_l, headers)
+                # Captura CSRF e faz GET /l
+                csrf = await page.locator('meta[name="csrf-token"]').get_attribute("content")
                 resp: PWResponse = await page.request.get(
-                    url=url_l,
-                    headers=headers,
-                    timeout=120_000,  # até 2 minutos
+                    url=f"{config.url.rstrip('/')}/l",
+                    headers={
+                        "X-CSRF-Token": csrf or "",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json",
+                    },
+                    timeout=120_000,
                 )
-                logger.info("Resposta recebida: HTTP %d", resp.status)
-
                 if resp.status != 200:
                     text = await resp.text()
-                    logger.error("Corpo da resposta de erro: %s", text[:500])
+                    logger.error("Erro HTTP %d: %s", resp.status, text[:200])
                     raise RuntimeError(f"HTTP {resp.status} ao chamar /l")
-
-                # 6) Extrai JSON
                 data = await resp.json()
-                logger.info("JSON recebido: %d itens", len(data))
 
             except (PlaywrightTimeoutError, asyncio.TimeoutError) as e:
-                logger.exception("Timeout ou erro Playwright: %s", e)
+                logger.exception("Erro na captura via Playwright")
                 raise RuntimeError(f"Erro capturando /l via Playwright: {e}") from e
-
             finally:
-                logger.debug("Fechando contexto e browser")
                 await context.close()
                 await browser.close()
 
-        # 7) Monta lista de leaks
+        # --- Aqui adaptamos para company, information e source_url ---
         leaks: List[Dict] = []
-        for idx, item in enumerate(data, 1):
+        for item in data:
+            raw_url = item.get("url", "")
+            m = URL_RX.search(raw_url)
+            clean_url = m.group(1) if m else raw_url
+
             leak = {
                 "company": item.get("name", "").strip(),
-                "source_url": item.get("url"),
-                "desc": item.get("desc"),
-                "progress": item.get("progress"),
+                "information": item.get("desc", "").strip(),
+                "source_url": clean_url,
                 "found_at": datetime.now(timezone.utc),
                 "site_id": config.site_id,
             }
-            logger.debug("Leak %d: %s", idx, leak)
+            logger.debug("Leak extraído: %s", leak)
             leaks.append(leak)
 
-        logger.info("=== Playwright fetch concluído: %d leaks extraídos ===", len(leaks))
+        logger.info("=== Concluído: %d leaks ===", len(leaks))
         return leaks
 
     def run(self, config: ScraperConfig) -> List[Dict]:
-        logger.info("Run chamado para %s", config.url)
         config.needs_js = True
         leaks = asyncio.run(self._fetch_with_playwright(config))
 
-        # Normaliza URLs relativas
+        # Normaliza URLs relativas, se necessário
         base = config.url.rstrip("/") + "/"
         for leak in leaks:
-            url = leak["source_url"]
-            if url and not url.startswith("http"):
-                new_url = urljoin(base, url.lstrip("/"))
-                logger.debug("Convertendo URL relativa %s → %s", url, new_url)
-                leak["source_url"] = new_url
+            if leak["source_url"] and not leak["source_url"].startswith("http"):
+                leak["source_url"] = urljoin(base, leak["source_url"].lstrip("/"))
 
-        logger.info("Run finalizada com %d leaks", len(leaks))
         return leaks
