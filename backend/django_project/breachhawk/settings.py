@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "notifications",
     "scrapers",
     "sites",
+    "monitoring",
     "corsheaders",  # Added for CORS support
 ]
 
