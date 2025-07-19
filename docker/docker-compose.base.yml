@@ -33,7 +33,7 @@ services:
     build:
       context: ..
       dockerfile: worker/Dockerfile
-    command: celery -A breachhawk.celery worker -Ofair -l info
+    command: celery -A breachhawk.celery worker -Ofair -l info --autoreload
     depends_on:
       - backend
       - redis
