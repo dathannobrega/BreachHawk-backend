@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/sites/", include("sites.urls")),
     path("api/scrapers/", include("scrapers.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path("api/monitoring/", include("monitoring.urls")),
 ]
 
 # Serve static and media files during development
