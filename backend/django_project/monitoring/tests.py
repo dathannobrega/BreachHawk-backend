@@ -118,7 +118,7 @@ def test_update_permission_denied():
     owner = PlatformUser.objects.create_user(
         username="owner", email="o@example.com", password="p"
     )
-    other = PlatformUser.objects.create_user(
+    PlatformUser.objects.create_user(
         username="other", email="oth@example.com", password="p"
     )
     res = MonitoredResource.objects.create(user=owner, keyword="foo")

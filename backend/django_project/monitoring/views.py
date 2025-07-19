@@ -18,7 +18,8 @@ class MonitoredResourceListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         keyword = serializer.validated_data.get("keyword")
-        if MonitoredResource.objects.filter(user=user, keyword=keyword).exists():
+        qs = MonitoredResource.objects.filter(user=user, keyword=keyword)
+        if qs.exists():
             raise ValidationError({"detail": "Recurso j\u00e1 monitorado."})
         resource = serializer.save(user=user)
         scan_existing_leaks(resource)
@@ -36,11 +37,13 @@ class MonitoredResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         keyword = serializer.validated_data.get("keyword")
         if keyword:
-            qs = MonitoredResource.objects.filter(user=user, keyword=keyword).exclude(
-                pk=self.get_object().pk
-            )
+            qs = MonitoredResource.objects.filter(
+                user=user, keyword=keyword
+            ).exclude(pk=self.get_object().pk)
             if qs.exists():
-                raise ValidationError({"detail": "Recurso j\u00e1 monitorado."})
+                raise ValidationError(
+                    {"detail": "Recurso j\u00e1 monitorado."}
+                )
         serializer.save()
 
 
