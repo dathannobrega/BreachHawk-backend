@@ -1,9 +1,10 @@
 import pytest
-from django.urls import reverse
-from rest_framework.test import APIClient
 from accounts.models import PlatformUser
+from django.urls import reverse
 from leaks.models import Leak
-from .models import MonitoredResource, Alert
+from rest_framework.test import APIClient
+
+from .models import Alert, MonitoredResource
 
 
 @pytest.mark.django_db
@@ -18,13 +19,12 @@ def test_resource_creation_triggers_scan(monkeypatch):
     def fake_send(*args, **kwargs):
         captured["called"] = True
 
-    monkeypatch.setattr(
-        "monitoring.services.send_alert_email", fake_send
-    )
+    monkeypatch.setattr("monitoring.services.send_alert_email", fake_send)
 
     client = APIClient()
     token = client.post(
-        reverse("login"), {"username": "u", "password": "p"}
+        reverse("login"),
+        {"username": "u", "password": "p"},
     ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
@@ -49,9 +49,7 @@ def test_alert_created_on_new_leak(monkeypatch):
     def fake_send(*args, **kwargs):
         captured["called"] = True
 
-    monkeypatch.setattr(
-        "monitoring.services.send_alert_email", fake_send
-    )
+    monkeypatch.setattr("monitoring.services.send_alert_email", fake_send)
 
     Leak.objects.create(company="FooBar", source_url="http://f.com")
 
@@ -70,6 +68,20 @@ def test_alert_list_endpoint(auth_client, admin_user):
 
 
 @pytest.mark.django_db
+def test_ack_alert_endpoint(auth_client, admin_user):
+    resource = MonitoredResource.objects.create(user=admin_user, keyword="ack")
+    leak = Leak.objects.create(company="Ack", source_url="http://a.com")
+    alert = Alert.objects.get(user=admin_user, resource=resource, leak=leak)
+
+    url = reverse("alert-ack", args=[alert.id])
+    resp = auth_client.patch(url, {"acknowledged": True}, format="json")
+
+    assert resp.status_code == 200
+    alert.refresh_from_db()
+    assert alert.acknowledged is True
+
+
+@pytest.mark.django_db
 def test_duplicate_resource_not_allowed():
     user = PlatformUser.objects.create_user(
         username="dup", email="dup@example.com", password="p"
@@ -78,7 +90,8 @@ def test_duplicate_resource_not_allowed():
 
     client = APIClient()
     token = client.post(
-        reverse("login"), {"username": "dup", "password": "p"}
+        reverse("login"),
+        {"username": "dup", "password": "p"},
     ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
@@ -98,7 +111,8 @@ def test_resource_update_and_delete():
 
     client = APIClient()
     token = client.post(
-        reverse("login"), {"username": "edit", "password": "p"}
+        reverse("login"),
+        {"username": "edit", "password": "p"},
     ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
@@ -125,7 +139,8 @@ def test_update_permission_denied():
 
     client = APIClient()
     token = client.post(
-        reverse("login"), {"username": "other", "password": "p"}
+        reverse("login"),
+        {"username": "other", "password": "p"},
     ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 

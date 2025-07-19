@@ -2,9 +2,7 @@ from django.db import models
 
 
 class MonitoredResource(models.Model):
-    user = models.ForeignKey(
-        "accounts.PlatformUser", on_delete=models.CASCADE
-    )
+    user = models.ForeignKey("accounts.PlatformUser", on_delete=models.CASCADE)
     keyword = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -13,13 +11,10 @@ class MonitoredResource(models.Model):
 
 
 class Alert(models.Model):
-    user = models.ForeignKey(
-        "accounts.PlatformUser", on_delete=models.CASCADE
-    )
-    resource = models.ForeignKey(
-        MonitoredResource, on_delete=models.CASCADE
-    )
+    user = models.ForeignKey("accounts.PlatformUser", on_delete=models.CASCADE)
+    resource = models.ForeignKey(MonitoredResource, on_delete=models.CASCADE)
     leak = models.ForeignKey("leaks.Leak", on_delete=models.CASCADE)
+    acknowledged = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

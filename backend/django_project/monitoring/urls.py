@@ -1,8 +1,10 @@
 from django.urls import path
+
 from .views import (
-    MonitoredResourceListCreateView,
-    MonitoredResourceDetailView,
+    AlertAckView,
     AlertListView,
+    MonitoredResourceDetailView,
+    MonitoredResourceListCreateView,
 )
 
 urlpatterns = [
@@ -17,4 +19,9 @@ urlpatterns = [
         name="monitoredresource-detail",
     ),
     path("alerts/", AlertListView.as_view(), name="alert-list"),
+    path(
+        "alerts/<int:pk>/ack/",
+        AlertAckView.as_view(),
+        name="alert-ack",
+    ),
 ]

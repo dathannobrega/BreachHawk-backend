@@ -1,6 +1,7 @@
-from rest_framework import serializers
-from .models import MonitoredResource, Alert
 from leaks.serializers import LeakSerializer
+from rest_framework import serializers
+
+from .models import Alert, MonitoredResource
 
 
 class MonitoredResourceSerializer(serializers.ModelSerializer):
@@ -14,4 +15,10 @@ class AlertSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alert
-        fields = ["id", "resource", "leak", "created_at"]
+        fields = ["id", "resource", "leak", "acknowledged", "created_at"]
+
+
+class AlertAckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alert
+        fields = ["acknowledged"]

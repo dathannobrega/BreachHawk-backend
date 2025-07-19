@@ -1,9 +1,14 @@
+from accounts.authentication import JWTAuthentication
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from accounts.authentication import JWTAuthentication
-from .models import MonitoredResource, Alert
-from .serializers import MonitoredResourceSerializer, AlertSerializer
+
+from .models import Alert, MonitoredResource
+from .serializers import (
+    AlertAckSerializer,
+    AlertSerializer,
+    MonitoredResourceSerializer,
+)
 from .services import scan_existing_leaks
 
 
@@ -49,6 +54,15 @@ class MonitoredResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class AlertListView(generics.ListAPIView):
     serializer_class = AlertSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Alert.objects.filter(user=self.request.user)
+
+
+class AlertAckView(generics.UpdateAPIView):
+    serializer_class = AlertAckSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
