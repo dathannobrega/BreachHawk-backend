@@ -9,7 +9,9 @@ from .models import Alert, MonitoredResource
 
 @pytest.mark.django_db
 def test_resource_creation_triggers_scan(monkeypatch):
-    user = PlatformUser.objects.create_user(username="u", email="u@x.com", password="p")
+    user = PlatformUser.objects.create_user(
+        username="u", email="u@x.com", password="p"
+    )
     Leak.objects.create(company="Acme Corp", source_url="http://x.com")
 
     captured = {}
@@ -20,9 +22,10 @@ def test_resource_creation_triggers_scan(monkeypatch):
     monkeypatch.setattr("monitoring.services.send_alert_email", fake_send)
 
     client = APIClient()
-    token = client.post(reverse("login"), {"username": "u", "password": "p"}).data[
-        "access"
-    ]
+    token = client.post(
+        reverse("login"),
+        {"username": "u", "password": "p"},
+    ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     resp = client.post(
@@ -86,9 +89,10 @@ def test_duplicate_resource_not_allowed():
     MonitoredResource.objects.create(user=user, keyword="foo")
 
     client = APIClient()
-    token = client.post(reverse("login"), {"username": "dup", "password": "p"}).data[
-        "access"
-    ]
+    token = client.post(
+        reverse("login"),
+        {"username": "dup", "password": "p"},
+    ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     resp = client.post(
@@ -106,9 +110,10 @@ def test_resource_update_and_delete():
     res = MonitoredResource.objects.create(user=user, keyword="foo")
 
     client = APIClient()
-    token = client.post(reverse("login"), {"username": "edit", "password": "p"}).data[
-        "access"
-    ]
+    token = client.post(
+        reverse("login"),
+        {"username": "edit", "password": "p"},
+    ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     url = reverse("monitoredresource-detail", args=[res.id])
@@ -133,9 +138,10 @@ def test_update_permission_denied():
     res = MonitoredResource.objects.create(user=owner, keyword="foo")
 
     client = APIClient()
-    token = client.post(reverse("login"), {"username": "other", "password": "p"}).data[
-        "access"
-    ]
+    token = client.post(
+        reverse("login"),
+        {"username": "other", "password": "p"},
+    ).data["access"]
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     url = reverse("monitoredresource-detail", args=[res.id])

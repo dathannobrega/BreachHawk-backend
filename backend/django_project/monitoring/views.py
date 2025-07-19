@@ -42,11 +42,13 @@ class MonitoredResourceDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         keyword = serializer.validated_data.get("keyword")
         if keyword:
-            qs = MonitoredResource.objects.filter(user=user, keyword=keyword).exclude(
-                pk=self.get_object().pk
-            )
+            qs = MonitoredResource.objects.filter(
+                user=user, keyword=keyword
+            ).exclude(pk=self.get_object().pk)
             if qs.exists():
-                raise ValidationError({"detail": "Recurso j\u00e1 monitorado."})
+                raise ValidationError(
+                    {"detail": "Recurso j\u00e1 monitorado."}
+                )
         serializer.save()
 
 
