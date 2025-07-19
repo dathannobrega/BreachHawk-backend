@@ -1,7 +1,11 @@
+import os
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
+
+os.environ["CELERY_BROKER_URL"] = "memory://"
+os.environ["CELERY_RESULT_BACKEND"] = "cache+memory://"
 
 
 @pytest.fixture

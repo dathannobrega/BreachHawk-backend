@@ -34,6 +34,7 @@ class Site(models.Model):
     )
     scraper = models.CharField(max_length=255, default="generic")
     needs_js = models.BooleanField(default=False)
+    frequency_minutes = models.PositiveIntegerField(default=60)
     enabled = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     bypass_config = models.JSONField(blank=True, null=True)
@@ -47,9 +48,7 @@ class Site(models.Model):
 
 
 class SiteLink(models.Model):
-    site = models.ForeignKey(
-        Site, related_name="links", on_delete=models.CASCADE
-    )
+    site = models.ForeignKey(Site, related_name="links", on_delete=models.CASCADE)
     url = models.URLField(unique=True, blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
