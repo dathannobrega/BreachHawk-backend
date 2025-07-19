@@ -48,7 +48,9 @@ class Site(models.Model):
 
 
 class SiteLink(models.Model):
-    site = models.ForeignKey(Site, related_name="links", on_delete=models.CASCADE)
+    site = models.ForeignKey(
+        Site, related_name="links", on_delete=models.CASCADE
+    )
     url = models.URLField(unique=True, blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 

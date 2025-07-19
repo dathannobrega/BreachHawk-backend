@@ -15,7 +15,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "breachhawk.settings")
 django.setup()
 
 from scrapers.service import run_scraper_for_site  # noqa: E402
-from scrapers import load_custom_scrapers
+from scrapers import load_custom_scrapers  # noqa: E402
 from sites.models import Site  # noqa: E402
 
 configure_logging()
