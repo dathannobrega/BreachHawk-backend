@@ -11,6 +11,8 @@ from .serializers import (
     TaskStatusSerializer,
 )
 from .service import schedule_scraper, get_task_status
+from breachhawk.celery import reload_scrapers_task
+from . import load_custom_scrapers
 from django.shortcuts import get_object_or_404
 from sites.models import Site
 from rest_framework import status
@@ -82,6 +84,11 @@ class ScraperUploadView(APIView):
         new_path = os.path.join(directory, f"{slug}.py")
         if path != new_path:
             os.rename(path, new_path)
+        load_custom_scrapers()
+        try:
+            reload_scrapers_task.delay()
+        except Exception:
+            pass
         return Response({"msg": "scraper uploaded", "slug": slug}, status=201)
 
 
@@ -104,6 +111,11 @@ class ScraperDeleteView(APIView):
             return Response({"detail": "Scraper not found"}, status=404)
         os.remove(path)
         registry.pop(slug, None)
+        load_custom_scrapers()
+        try:
+            reload_scrapers_task.delay()
+        except Exception:
+            pass
         return Response(status=204)
 
 
