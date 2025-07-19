@@ -62,10 +62,8 @@ def test_alert_created_on_new_leak(monkeypatch):
 @pytest.mark.django_db
 def test_alert_list_endpoint(auth_client, admin_user):
     resource = MonitoredResource.objects.create(user=admin_user, keyword="bar")
-    leak = Leak.objects.create(company="Bar", source_url="http://b.com")
-
+    Leak.objects.create(company="Bar", source_url="http://b.com")
     resp = auth_client.get(reverse("alert-list"))
 
     assert resp.status_code == 200
     assert resp.data[0]["resource"] == resource.id
-

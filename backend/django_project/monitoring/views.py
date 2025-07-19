@@ -1,6 +1,5 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from accounts.authentication import JWTAuthentication
 from .models import MonitoredResource, Alert
 from .serializers import MonitoredResourceSerializer, AlertSerializer

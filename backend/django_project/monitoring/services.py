@@ -1,4 +1,3 @@
-from typing import Iterable
 from django.db.models import Q
 from leaks.models import Leak
 from .models import MonitoredResource, Alert
