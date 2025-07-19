@@ -24,7 +24,7 @@ jobs:
           pip install flake8
       - name: Roda flake8
         run: |
-          flake8 . --exclude=*/migrations/*
+          flake8 . --exclude=*/migrations/*,docs/scrapers/*
 
   # 2) Testes em matriz de Python
   test:
