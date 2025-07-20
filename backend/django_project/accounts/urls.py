@@ -14,6 +14,7 @@ from .views import (
     PasswordPolicyView,
     PasswordPolicyPublicView,
     ForgotPasswordView,
+    ResetPasswordView,
     PlatformUserViewSet,
     UserLoginHistoryView,
     UserSessionListView,
@@ -71,6 +72,11 @@ urlpatterns = [
         "forgot-password/",
         ForgotPasswordView.as_view(),
         name="forgot-password",
+    ),
+    path(
+        "reset-password/",
+        ResetPasswordView.as_view(),
+        name="reset-password",
     ),
     path(
         "platform-users/<int:user_id>/login-history/",

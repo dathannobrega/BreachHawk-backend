@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from datetime import datetime, timezone, timedelta
 from .forms import PlatformUserForm
 from .models import PlatformUser, PasswordPolicy, PasswordResetToken
 
@@ -206,4 +207,55 @@ def test_forgot_password_unknown_user(monkeypatch):
 def test_forgot_password_missing_param():
     client = APIClient()
     resp = client.post(reverse("forgot-password"), {})
+    assert resp.status_code == 400
+
+
+@pytest.mark.django_db
+def test_reset_password_success(monkeypatch):
+    user = PlatformUser.objects.create_user(
+        username="tom", email="tom@example.com", password="oldpwd"
+    )
+    token = PasswordResetToken.objects.create(
+        user=user,
+        token="abc",
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+    )
+    client = APIClient()
+    resp = client.post(
+        reverse("reset-password"),
+        {"token": token.token, "password": "Newpass1!"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.data["success"] is True
+    user.refresh_from_db()
+    assert user.check_password("Newpass1!")
+    assert PasswordResetToken.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_reset_password_invalid_token():
+    client = APIClient()
+    resp = client.post(
+        reverse("reset-password"),
+        {"token": "bad", "password": "Pwd12345"},
+    )
+    assert resp.status_code == 400
+
+
+@pytest.mark.django_db
+def test_reset_password_expired_token():
+    user = PlatformUser.objects.create_user(
+        username="kate", email="kate@example.com", password="oldpwd"
+    )
+    PasswordResetToken.objects.create(
+        user=user,
+        token="expired",
+        expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+    )
+    client = APIClient()
+    resp = client.post(
+        reverse("reset-password"),
+        {"token": "expired", "password": "Pwd12345"},
+    )
     assert resp.status_code == 400

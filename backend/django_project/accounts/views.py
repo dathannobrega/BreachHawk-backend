@@ -29,7 +29,7 @@ from .serializers import (
 )
 from .authentication import JWTAuthentication
 from .permissions import IsPlatformAdmin
-from .services import get_location_from_ip
+from .services import get_location_from_ip, validate_password
 from utils.get_ip import get_client_ip
 from notifications.email_utils import send_password_reset_email
 
@@ -387,4 +387,33 @@ class ForgotPasswordView(APIView):
             send_password_reset_email(
                 user.email, reset_link, user.username or user.email
             )
+        return Response({"success": True})
+
+
+class ResetPasswordView(APIView):
+    """Finalize the password reset using a token."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request) -> Response:
+        token_value = request.data.get("token")
+        password = request.data.get("password")
+        if not token_value or not password:
+            msg = {"detail": "Missing token or password"}
+            return Response(msg, status=400)
+
+        token = PasswordResetToken.objects.filter(token=token_value).first()
+        if not token or token.expires_at < datetime.now(timezone.utc):
+            msg = {"detail": "Invalid or expired token"}
+            return Response(msg, status=400)
+
+        error = validate_password(password)
+        if error:
+            return Response({"detail": error}, status=400)
+
+        user = token.user
+        user.set_password(password)
+        user.save()
+        token.delete()
         return Response({"success": True})
