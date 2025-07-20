@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from .forms import PlatformUserForm
-from .models import PasswordPolicy
+from .models import PlatformUser, PasswordPolicy, PasswordResetToken
 
 
 @pytest.mark.django_db
@@ -155,3 +155,56 @@ def test_login_history_and_sessions(auth_client, admin_user):
     sessions_resp = auth_client.get(reverse("session-list"))
     assert sessions_resp.status_code == 200
     assert sessions_resp.data
+
+
+@pytest.mark.django_db
+def test_forgot_password_existing_user(monkeypatch, settings):
+    user = PlatformUser.objects.create_user(
+        username="sam", email="sam@example.com", password="pwd"
+    )
+    captured = {}
+
+    def fake_send(email, link, name):
+        captured["email"] = email
+        captured["link"] = link
+
+    monkeypatch.setattr(
+        "accounts.views.send_password_reset_email", fake_send
+    )
+
+    client = APIClient()
+    resp = client.post(reverse("forgot-password"), {"username": "sam"})
+
+    assert resp.status_code == 200
+    assert resp.data["success"] is True
+    assert PasswordResetToken.objects.filter(user=user).count() == 1
+    assert captured["email"] == "sam@example.com"
+    assert captured["link"].startswith(settings.FRONTEND_URL)
+
+
+@pytest.mark.django_db
+def test_forgot_password_unknown_user(monkeypatch):
+    called = {}
+
+    def fake_send(*args, **kwargs):
+        called["ok"] = True
+
+    monkeypatch.setattr(
+        "accounts.views.send_password_reset_email", fake_send
+    )
+
+    client = APIClient()
+    resp = client.post(reverse("forgot-password"), {"username": "nope"})
+
+    assert resp.status_code == 200
+    assert resp.data["success"] is True
+    assert PasswordResetToken.objects.count() == 0
+    assert "ok" not in called
+
+
+@pytest.mark.django_db
+def test_forgot_password_missing_param():
+    client = APIClient()
+    resp = client.post(reverse("forgot-password"), {})
+    assert resp.status_code == 400
+
