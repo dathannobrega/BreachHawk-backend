@@ -417,3 +417,33 @@ class ResetPasswordView(APIView):
         user.save()
         token.delete()
         return Response({"success": True})
+
+
+class ChangePasswordView(APIView):
+    """Allow authenticated users to change their password."""
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request) -> Response:
+        current_password = request.data.get("current_password")
+        new_password = request.data.get("new_password")
+
+        if not current_password or not new_password:
+            msg = {"detail": "Missing current or new password"}
+            return Response(msg, status=400)
+
+        if not request.user.check_password(current_password):
+            return Response(
+                {"detail": "Current password is incorrect"},
+                status=400,
+            )
+
+        error = validate_password(new_password)
+        if error:
+            return Response({"detail": error}, status=400)
+
+        user = request.user
+        user.set_password(new_password)
+        user.save()
+        return Response({"success": True})
