@@ -259,3 +259,48 @@ def test_reset_password_expired_token():
         {"token": "expired", "password": "Pwd12345"},
     )
     assert resp.status_code == 400
+
+
+@pytest.mark.django_db
+def test_change_password_success():
+    user = PlatformUser.objects.create_user(
+        username="carlos", email="c@example.com", password="oldpass"
+    )
+    client = APIClient()
+    login = client.post(
+        reverse("login"),
+        {"username": "carlos", "password": "oldpass"},
+    )
+    token = login.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    resp = client.post(
+        reverse("change-password"),
+        {"current_password": "oldpass", "new_password": "Newpass1!"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.data["success"] is True
+    user.refresh_from_db()
+    assert user.check_password("Newpass1!")
+
+
+@pytest.mark.django_db
+def test_change_password_wrong_current():
+    user = PlatformUser.objects.create_user(
+        username="eve", email="e@example.com", password="pass123"
+    )
+    client = APIClient()
+    login = client.post(
+        reverse("login"),
+        {"username": "eve", "password": "pass123"},
+    )
+    token = login.data["access"]
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    resp = client.post(
+        reverse("change-password"),
+        {"current_password": "wrong", "new_password": "Other1!"},
+    )
+
+    assert resp.status_code == 400
+    user.refresh_from_db()
+    assert user.check_password("pass123")
