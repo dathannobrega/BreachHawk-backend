@@ -368,7 +368,8 @@ class ForgotPasswordView(APIView):
     def post(self, request) -> Response:
         identifier = request.data.get("username") or request.data.get("email")
         if not identifier:
-            return Response({"detail": "Missing username or email"}, status=400)
+            msg = {"detail": "Missing username or email"}
+            return Response(msg, status=400)
 
         user = PlatformUser.objects.filter(
             Q(username__iexact=identifier) | Q(email__iexact=identifier)
@@ -386,6 +387,4 @@ class ForgotPasswordView(APIView):
             send_password_reset_email(
                 user.email, reset_link, user.username or user.email
             )
-
         return Response({"success": True})
-

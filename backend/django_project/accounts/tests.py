@@ -207,4 +207,3 @@ def test_forgot_password_missing_param():
     client = APIClient()
     resp = client.post(reverse("forgot-password"), {})
     assert resp.status_code == 400
-
