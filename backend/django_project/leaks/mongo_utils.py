@@ -3,6 +3,8 @@
 from pymongo import MongoClient
 from django.conf import settings
 from .documents import LeakDoc
+from .models import Leak
+from sites.models import Site
 
 client = MongoClient(settings.MONGODB_URI)
 mongo_db = client[settings.MONGODB_DB]
@@ -17,6 +19,33 @@ def insert_leak(doc: LeakDoc) -> str:
     if not INDEXES_INITIALIZED:
         init_mongo_indexes()
     result = mongo_db.leaks.insert_one(doc.model_dump(mode="json"))
+
+    # Create relational DB entry, avoiding duplicates based on unique fields
+    try:
+        site = Site.objects.get(id=doc.site_id)
+    except Site.DoesNotExist:  # pragma: no cover - should not happen in tests
+        site = None
+
+    defaults = {
+        "site": site,
+        "country": doc.country,
+        "found_at": doc.found_at,
+        "views": doc.views,
+        "publication_date": doc.publication_date,
+        "amount_of_data": doc.amount_of_data,
+        "information": doc.information,
+        "comment": doc.comment,
+        "download_links": [str(url) for url in doc.download_links]
+        if doc.download_links
+        else None,
+        "rar_password": doc.rar_password,
+    }
+    Leak.objects.get_or_create(
+        company=doc.company,
+        source_url=str(doc.source_url),
+        defaults=defaults,
+    )
+
     return str(result.inserted_id)
 
 

@@ -3,6 +3,10 @@ from django.urls import reverse
 from .models import ScrapeLog, Snapshot
 from .serializers import ScrapeLogSerializer, SnapshotSerializer
 from sites.models import Site
+from leaks.documents import LeakDoc
+from monitoring.models import Alert, MonitoredResource
+from scrapers import service
+from accounts.models import PlatformUser
 
 
 @pytest.mark.django_db
@@ -125,3 +129,62 @@ def test_site_log_list_endpoint(auth_client):
 
     assert resp.status_code == 200
     assert len(resp.data) == 1
+
+
+@pytest.mark.django_db
+def test_run_scraper_produces_alert(monkeypatch):
+    """Running a scraper should create alerts for matching keywords."""
+
+    class DummyScraper:
+        last_retries = 0
+
+        def run(self, config):
+            return [
+                LeakDoc(
+                    site_id=config.site_id,
+                    company="Acme Corp",
+                    source_url="http://ex.com",
+                    information="important data",
+                )
+            ]
+
+    # Stub MongoDB interactions
+    inserted = []
+
+    class Coll:
+        def insert_one(self, data):
+            inserted.append(data)
+            return type("R", (), {"inserted_id": "1"})()
+
+    class DB:
+        leaks = Coll()
+
+    monkeypatch.setattr("leaks.mongo_utils.mongo_db", DB())
+    monkeypatch.setattr("leaks.mongo_utils.INDEXES_INITIALIZED", True)
+
+    # Register dummy scraper
+    monkeypatch.setitem(service.registry, "dummy", DummyScraper())
+
+    site = Site.objects.create(
+        name="Test",
+        url="http://t.com",
+        scraper="dummy",
+        bypass_config={"use_proxies": False, "rotate_user_agent": False},
+    )
+    user = PlatformUser.objects.create_user(
+        username="u", email="u@x.com", password="p"
+    )
+    resource = MonitoredResource.objects.create(user=user, keyword="acme")
+
+    captured = {}
+
+    def fake_send(*args, **kwargs):
+        captured["called"] = True
+
+    monkeypatch.setattr("monitoring.services.send_alert_email", fake_send)
+
+    service.run_scraper_for_site(site.id)
+
+    assert inserted != []
+    assert Alert.objects.filter(user=user, resource=resource).count() == 1
+    assert captured.get("called") is True
