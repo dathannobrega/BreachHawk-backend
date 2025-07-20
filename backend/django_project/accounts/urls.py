@@ -13,6 +13,8 @@ from .views import (
     GoogleCallbackView,
     PasswordPolicyView,
     PasswordPolicyPublicView,
+    ForgotPasswordView,
+    ResetPasswordView,
     PlatformUserViewSet,
     UserLoginHistoryView,
     UserSessionListView,
@@ -65,6 +67,16 @@ urlpatterns = [
         "password-policy/public/",
         PasswordPolicyPublicView.as_view(),
         name="password-policy-public",
+    ),
+    path(
+        "forgot-password/",
+        ForgotPasswordView.as_view(),
+        name="forgot-password",
+    ),
+    path(
+        "reset-password/",
+        ResetPasswordView.as_view(),
+        name="reset-password",
     ),
     path(
         "platform-users/<int:user_id>/login-history/",

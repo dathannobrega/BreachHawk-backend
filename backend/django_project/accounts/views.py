@@ -1,9 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
+from django.db.models import Q
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -12,7 +13,13 @@ import os
 import uuid
 from authlib.integrations.django_client import OAuth
 
-from .models import PlatformUser, LoginHistory, UserSession, PasswordPolicy
+from .models import (
+    PlatformUser,
+    LoginHistory,
+    UserSession,
+    PasswordPolicy,
+    PasswordResetToken,
+)
 from .serializers import (
     PlatformUserSerializer,
     PlatformUserUpdateSerializer,
@@ -22,8 +29,9 @@ from .serializers import (
 )
 from .authentication import JWTAuthentication
 from .permissions import IsPlatformAdmin
-from .services import get_location_from_ip
+from .services import get_location_from_ip, validate_password
 from utils.get_ip import get_client_ip
+from notifications.email_utils import send_password_reset_email
 
 oauth = OAuth()
 oauth.register(
@@ -349,3 +357,63 @@ class UserSessionListView(generics.ListAPIView):
         return (
             UserSession.objects.filter(user_id=user_id).order_by("-created_at")
         )
+
+
+class ForgotPasswordView(APIView):
+    """Initiate password reset without revealing user existence."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request) -> Response:
+        identifier = request.data.get("username") or request.data.get("email")
+        if not identifier:
+            msg = {"detail": "Missing username or email"}
+            return Response(msg, status=400)
+
+        user = PlatformUser.objects.filter(
+            Q(username__iexact=identifier) | Q(email__iexact=identifier)
+        ).first()
+
+        if user:
+            token = uuid.uuid4().hex
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+            PasswordResetToken.objects.create(
+                user=user, token=token, expires_at=expires_at
+            )
+            reset_link = (
+                f"{settings.FRONTEND_URL}/reset-password?token={token}"
+            )
+            send_password_reset_email(
+                user.email, reset_link, user.username or user.email
+            )
+        return Response({"success": True})
+
+
+class ResetPasswordView(APIView):
+    """Finalize the password reset using a token."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request) -> Response:
+        token_value = request.data.get("token")
+        password = request.data.get("password")
+        if not token_value or not password:
+            msg = {"detail": "Missing token or password"}
+            return Response(msg, status=400)
+
+        token = PasswordResetToken.objects.filter(token=token_value).first()
+        if not token or token.expires_at < datetime.now(timezone.utc):
+            msg = {"detail": "Invalid or expired token"}
+            return Response(msg, status=400)
+
+        error = validate_password(password)
+        if error:
+            return Response({"detail": error}, status=400)
+
+        user = token.user
+        user.set_password(password)
+        user.save()
+        token.delete()
+        return Response({"success": True})
