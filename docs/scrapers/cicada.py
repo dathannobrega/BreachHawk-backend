@@ -6,6 +6,11 @@ from typing import Any, Dict, List
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
+from playwright.sync_api import (
+    sync_playwright,
+    TimeoutError as PlaywrightTimeoutError,
+)
+
 from scrapers.base import BaseScraper
 from scrapers.config import ScraperConfig
 
@@ -15,142 +20,209 @@ logger.setLevel(logging.DEBUG)
 
 class CicadaScraper(BaseScraper):
     slug = "cicada"
-    # herda TOR_PROXY, JS_WAIT_SELECTOR e USER_AGENTS do BaseScraper
+    JS_WAIT_SELECTOR = "div.flex.flex-wrap"
+
+    def _get_client_key(self, config: ScraperConfig) -> str:
+        """
+        Usa Playwright para passar pelo challenge JS (anti-DDoS),
+        aguarda o JS_WAIT_SELECTOR e retorna o cookie 'clientKey'.
+        """
+        launch_args: Dict[str, Any] = {"headless": True}
+        if config.url.endswith(".onion") or config.bypass_config.use_proxies:
+            launch_args["proxy"] = {"server": self.TOR_PROXY}
+            logger.info("Playwright: usando proxy TOR %s", self.TOR_PROXY)
+
+        logger.info("Playwright: iniciando Chromium headless…")
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(**launch_args)
+            ctx = browser.new_context(ignore_https_errors=True)
+            page = ctx.new_page()
+            logger.debug("Playwright: abrindo página %s", config.url)
+
+            try:
+                page.goto(
+                    config.url,
+                    wait_until="networkidle",
+                    timeout=config.execution_options.timeout_seconds * 1000,
+                )
+                logger.debug("Playwright: aguardando seletor %r", self.JS_WAIT_SELECTOR)
+                page.wait_for_selector(
+                    selector=self.JS_WAIT_SELECTOR,
+                    timeout=config.execution_options.timeout_seconds * 1000,
+                )
+                logger.info("Playwright: desafio JS concluído, fórum carregado")
+            except PlaywrightTimeoutError as e:
+                browser.close()
+                logger.error("Playwright: falha no anti-DDoS inicial: %s", e)
+                raise RuntimeError("Challenge JS inicial falhou") from e
+
+            cookies = ctx.cookies()
+            logger.debug("Playwright: cookies brutos recebidos: %s", cookies)
+            browser.close()
+
+        # procura o clientKey e log detalhado
+        for c in cookies:
+            logger.info(
+                "Cookie encontrado → name=%s, value=%s, domain=%s, path=%s, expires=%s",
+                c.get("name"),
+                c.get("value"),
+                c.get("domain"),
+                c.get("path"),
+                c.get("expires"),
+            )
+            if c.get("name") == "clientKey":
+                logger.info("→ clientKey selecionado: %s", c["value"])
+                return c["value"]
+
+        logger.error("Nenhum cookie 'clientKey' encontrado entre os cookies acima")
+        raise RuntimeError("Cookie clientKey não foi retornado pelo desafio JS")
 
     def run(self, config: ScraperConfig) -> List[Dict[str, Any]]:
         """
-        1) Cria session (UA + proxy/TOR) com _build_session
-        2) GET inicial para gravar clientKey
-        3) Loop paginado (?page=N) até não encontrar mais cards
-        4) Parse de cada card + fetch de detalhe para 'description'
+        1) Passa pelo anti-DDoS com Playwright e extrai clientKey
+        2) Sobe Chromium e reutiliza o mesmo contexto para paginação
+        3) Itera ?page=1,2,3… até não encontrar mais cards
+        4) Parseia cada card e traz a descrição do post
         """
-        session = self._build_session(config)
+        # 1) Desafio JS e cookie
+        client_key = self._get_client_key(config)
 
-        # GET inicial: carrega clientKey no cookie
-        logger.info("Inicializando sessão em %s", config.url)
-        init_resp = session.get(
-            config.url, timeout=config.execution_options.timeout_seconds
-        )
-        init_resp.raise_for_status()
-        logger.debug("Cookies após init: %s", session.cookies.get_dict())
+        # 2) Configura Playwright para a paginação
+        launch_args: Dict[str, Any] = {"headless": True}
+        if config.url.endswith(".onion") or config.bypass_config.use_proxies:
+            launch_args["proxy"] = {"server": self.TOR_PROXY}
+            logger.info("Playwright: usando proxy TOR %s", self.TOR_PROXY)
 
         results: List[Dict[str, Any]] = []
-        page_num = 1
+        logger.info("Iniciando paginação via Playwright…")
 
-        while True:
-            # monta URL da página
-            if page_num == 1:
-                page_url = config.url
-            else:
-                sep = "&" if "?" in config.url else "?"
-                page_url = f"{config.url}{sep}page={page_num}"
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(**launch_args)
+            context = browser.new_context(ignore_https_errors=True)
+            page = context.new_page()
 
-            logger.info("Buscando página %d: %s", page_num, page_url)
-            resp = session.get(page_url, timeout=config.execution_options.timeout_seconds)
-            resp.raise_for_status()
-            html = resp.text
+            # injeta manualmente o cookie no contexto
+            domain = re.sub(r"https?://", "", config.url).split("/")[0]
+            context.add_cookies([{
+                "name": "clientKey",
+                "value": client_key,
+                "domain": domain,
+                "path": "/",
+            }])
+            logger.debug("Cookie clientKey injetado no contexto para domínio %s", domain)
 
-            # se o selector de grid não existir, encerra paginação
-            if self.JS_WAIT_SELECTOR and self.JS_WAIT_SELECTOR not in html:
-                logger.info(
-                    "Selector %r não encontrado na página %d – fim da paginação",
-                    self.JS_WAIT_SELECTOR,
-                    page_num,
+            page_num = 1
+            while True:
+                # monta a URL da page atual
+                page_url = (
+                    config.url
+                    if page_num == 1
+                    else f"{config.url}{'&' if '?' in config.url else '?'}page={page_num}"
                 )
-                break
+                logger.info("Página %d → %s", page_num, page_url)
 
-            soup = BeautifulSoup(html, "html.parser")
-            cards = soup.select("div.block.relative.p-8.bg-gray-800.rounded-lg")
-            if not cards:
-                logger.info("Nenhum card na página %d – fim da paginação", page_num)
-                break
-
-            for card in cards:
-                record: Dict[str, Any] = {
-                    "page": page_num,
-                    "source_url": page_url,
-                }
-
-                # título
-                title_el = card.find("h2")
-                record["company"] = title_el.get_text(strip=True) if title_el else ""
-
-                # web_url e post_url
-                record["web"] = ""
-                record["post_url"] = ""
-                for a in card.find_all("a", href=True):
-                    href = a["href"]
-                    text = a.get_text(strip=True)
-                    if href.startswith("http"):
-                        record["web"] = href
-                    elif "VIEW POST" in text.upper():
-                        record["post_url"] = urljoin(config.url, href)
-
-                # helper para extrair valor após <span>label</span><span>valor</span>
-                def _extract(label: str) -> str:
-                    span = card.find(
-                        "span", string=re.compile(fr"^{re.escape(label)}$", re.I)
+                try:
+                    page.goto(
+                        page_url,
+                        wait_until="networkidle",
+                        timeout=config.execution_options.timeout_seconds * 1000,
                     )
-                    if not span:
-                        raise ValueError(f"Label {label} não encontrado")
-                    sibling = span.find_next_sibling("span")
-                    return sibling.get_text(strip=True) if sibling else ""
+                    page.wait_for_selector(
+                        selector=self.JS_WAIT_SELECTOR,
+                        timeout=config.execution_options.timeout_seconds * 1000,
+                    )
+                    logger.debug("Página %d carregada com sucesso", page_num)
+                except PlaywrightTimeoutError:
+                    logger.info("Seletor não encontrado na página %d – encerrando paginação", page_num)
+                    break
 
-                # size_data, attachments, created
-                try:
-                    record["size_data"] = _extract("size data:")
-                except ValueError:
-                    record["size_data"] = ""
-                try:
-                    record["attachments"] = _extract("Attachments:")
-                except ValueError:
-                    record["attachments"] = ""
-                try:
-                    record["created"] = _extract("Created:")
-                except ValueError:
-                    record["created"] = ""
+                html = page.content()
+                soup = BeautifulSoup(html, "html.parser")
+                cards = soup.select("div.block.relative.p-8.bg-gray-800.rounded-lg")
+                logger.info("Página %d possui %d cards", page_num, len(cards))
+                if not cards:
+                    logger.info("Nenhum card em page %d – fim da paginação", page_num)
+                    break
 
-                # status
-                status_span = card.find("span", class_="timer")
-                if status_span:
-                    record["status"] = {
-                        "id": status_span.get("id", ""),
-                        "end_date": status_span.get("data-end-date", ""),
-                        "remaining": status_span.get_text(strip=True),
+                # parse de cada card
+                for idx, card in enumerate(cards, start=1):
+                    rec: Dict[str, Any] = {"page": page_num, "card_index": idx}
+                    logger.debug("Parsing card %d da página %d", idx, page_num)
+
+                    # título
+                    h2 = card.find("h2")
+                    rec["company"] = h2.get_text(strip=True) if h2 else ""
+                    logger.debug(" → company: %s", rec["company"])
+
+                    # web / post_url
+                    rec["web"], rec["post_url"] = "", ""
+                    for a in card.find_all("a", href=True):
+                        href = a["href"]
+                        txt = a.get_text(strip=True).upper()
+                        if href.startswith("http"):
+                            rec["web"] = href
+                        elif "VIEW POST" in txt:
+                            rec["post_url"] = urljoin(config.url, href)
+                    logger.debug(" → web: %s, post_url: %s", rec["web"], rec["post_url"])
+
+                    # extrai labels genéricos
+                    def _ext(label: str) -> str:
+                        sp = card.find(
+                            "span", string=re.compile(fr"^{re.escape(label)}$", re.I)
+                        )
+                        if not sp or not sp.next_sibling:
+                            return ""
+                        return sp.next_sibling.get_text(strip=True)
+
+                    rec["size_data"]   = _ext("size data:")
+                    rec["attachments"] = _ext("Attachments:")
+                    rec["created"]     = _ext("Created:")
+                    logger.debug(
+                        " → size_data=%s, attachments=%s, created=%s",
+                        rec["size_data"], rec["attachments"], rec["created"],
+                    )
+
+                    # status
+                    st = card.find("span", class_="timer")
+                    rec["status"] = {
+                        "id":        st.get("id", "") if st else "",
+                        "end_date":  st.get("data-end-date", "") if st else "",
+                        "remaining": st.get_text(strip=True) if st else "",
                     }
-                else:
-                    record["status"] = {}
+                    logger.debug(" → status=%s", rec["status"])
 
-                # views
-                view_el = card.select_one("div.absolute.bottom-0 p.text-sm")
-                views_txt = view_el.get_text(strip=True) if view_el else ""
-                record["views"] = int(views_txt) if views_txt.isdigit() else 0
+                    # views
+                    v = card.select_one("div.absolute.bottom-0 p.text-sm")
+                    txt = v.get_text(strip=True) if v else ""
+                    rec["views"] = int(txt) if txt.isdigit() else 0
+                    logger.debug(" → views=%d", rec["views"])
 
-                # fetch + parse detalhe (description)
-                if record["post_url"]:
-                    try:
-                        det_resp = session.get(
-                            record["post_url"],
-                            timeout=config.execution_options.timeout_seconds,
-                        )
-                        det_resp.raise_for_status()
-                        det_soup = BeautifulSoup(det_resp.text, "html.parser")
-                        container = det_soup.select_one("div.pr-10.flex-grow")
-                        if container:
-                            p = container.find("p")
-                            record["description"] = p.get_text(strip=True) if p else ""
-                        else:
-                            record["description"] = ""
-                    except Exception as e:
-                        logger.error(
-                            "Erro ao buscar detalhe %s: %s", record["post_url"], e
-                        )
-                        record["description"] = ""
-                else:
-                    record["description"] = ""
+                    # descrição do post
+                    rec["description"] = ""
+                    if rec["post_url"]:
+                        logger.debug(" → buscando descrição em %s", rec["post_url"])
+                        try:
+                            page.goto(
+                                rec["post_url"],
+                                wait_until="networkidle",
+                                timeout=10_000,
+                            )
+                            page.wait_for_selector(
+                                selector="div.pr-10.flex-grow",
+                                timeout=5_000,
+                            )
+                            det_soup = BeautifulSoup(page.content(), "html.parser")
+                            p = det_soup.select_one("div.pr-10.flex-grow p")
+                            rec["description"] = p.get_text(strip=True) if p else ""
+                            logger.debug(" → description capturada (%d chars)", len(rec["description"]))
+                        except PlaywrightTimeoutError:
+                            logger.warning(" → falhou ao carregar detalhe %s", rec["post_url"])
 
-                results.append(record)
+                    results.append(rec)
 
-            page_num += 1
+                page_num += 1
 
+            browser.close()
+
+        logger.info("Scraping CICADA finalizado com %d registros", len(results))
         return results
