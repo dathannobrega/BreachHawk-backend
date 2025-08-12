@@ -72,17 +72,18 @@ def send_alert_email(to_email: str, leak: dict) -> None:
             "unsubscribe_url": "https://www.protexion.cloud/unsubscribe",
         },
     )
-    text_content = (
-        f"Vazamento detectado: {leak['company']}\n\n"
-        f"Pa\u00eds: {leak['country']}\n"
-        f"Data: {leak['date']}\n"
-        f"Descri\u00e7\u00e3o: {leak['description']}\n"
-        f"Link: {leak['link']}\n\n",
-        (
-            "Se voc\u00ea j\u00e1 tomou provid\u00eancias, "
-            "desconsidere esta mensagem."
-        ),
-    )
+    text_content ="Vazou FDP"
+    # text_content = (
+    #     f"Vazamento detectado: {leak['company']}\n\n"
+    #     f"Pa\u00eds: {leak['country']}\n"
+    #     f"Data: {leak['date']}\n"
+    #     f"Descri\u00e7\u00e3o: {leak['description']}\n"
+    #     f"Link: {leak['link']}\n\n",
+    #     (
+    #         "Se voc\u00ea j\u00e1 tomou provid\u00eancias, "
+    #         "desconsidere esta mensagem."
+    #     ),
+    # )
     _send_email(subject, text_content, html_content, to_email)
 
 
