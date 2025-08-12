@@ -72,7 +72,7 @@ def send_alert_email(to_email: str, leak: dict) -> None:
             "unsubscribe_url": "https://www.protexion.cloud/unsubscribe",
         },
     )
-    text_content ="Vazou FDP"
+    text_content = "Vazou FDP"
     # text_content = (
     #     f"Vazamento detectado: {leak['company']}\n\n"
     #     f"Pa\u00eds: {leak['country']}\n"
