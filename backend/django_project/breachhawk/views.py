@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
+
 @csrf_exempt
 def health_check(request):
     status = {"status": "ok"}
@@ -17,7 +18,10 @@ def health_check(request):
 
     # Check MongoDB
     try:
-        mongo_client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=2000)
+        mongo_client = MongoClient(
+          settings.MONGODB_URI,
+          serverSelectionTimeoutMS=2000
+        )
         mongo_client.admin.command("ping")
         status["mongodb"] = "ok"
     except Exception as e:
