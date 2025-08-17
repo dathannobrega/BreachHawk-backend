@@ -1,12 +1,15 @@
 import pytest
 from django.urls import reverse
+from datetime import datetime, timezone
+
 from .models import ScrapeLog, Snapshot
 from .serializers import ScrapeLogSerializer, SnapshotSerializer
-from sites.models import Site
+from sites.models import Site, TelegramAccount, SiteMetrics
 from leaks.documents import LeakDoc
 from monitoring.models import Alert, MonitoredResource
 from scrapers import service
 from accounts.models import PlatformUser
+
 
 
 @pytest.mark.django_db
@@ -188,3 +191,93 @@ def test_run_scraper_produces_alert(monkeypatch):
     assert inserted != []
     assert Alert.objects.filter(user=user, resource=resource).count() == 1
     assert captured.get("called") is True
+
+
+@pytest.mark.django_db
+def test_telegram_scraper_runs(monkeypatch):
+    account = TelegramAccount.objects.create(api_id=1, api_hash="h", session_string="s")
+    site = Site.objects.create(
+        name="Group",
+        url="https://t.me/group",
+        type=Site.SiteType.TELEGRAM,
+        scraper="telegram",
+        telegram_account=account,
+        bypass_config={"use_proxies": False, "rotate_user_agent": False},
+    )
+
+    cfg = service._build_config(site, site.url, None)
+
+    class Msg:
+        id = 1
+        message = "hello"
+        date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        link = "https://t.me/group/1"
+
+    class Entity:
+        id = 123
+        username = "group"
+
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def is_user_authorized(self):
+            return True
+
+        def get_entity(self, url):
+            return Entity()
+
+        def iter_messages(self, entity):
+            return [Msg()]
+
+    monkeypatch.setattr("scrapers.telegram.TelegramClient", DummyClient)
+
+    from scrapers.telegram import TelegramScraper
+
+    leaks = TelegramScraper().run(cfg)
+    assert leaks[0]["site_id"] == site.id
+    assert leaks[0]["company"] == site.name
+    assert leaks[0]["information"] == "hello"
+    assert leaks[0]["source_url"] == "https://t.me/group/1"
+
+
+@pytest.mark.django_db
+def test_telegram_scraper_login_failure(monkeypatch):
+    account = TelegramAccount.objects.create(api_id=1, api_hash="h")
+    site = Site.objects.create(
+        name="Group",
+        url="https://t.me/group",
+        type=Site.SiteType.TELEGRAM,
+        scraper="telegram",
+        telegram_account=account,
+        bypass_config={"use_proxies": False, "rotate_user_agent": False},
+    )
+
+    cfg = service._build_config(site, site.url, None)
+
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def is_user_authorized(self):
+            return False
+
+    monkeypatch.setattr("scrapers.telegram.TelegramClient", DummyClient)
+
+    from scrapers.telegram import TelegramScraper
+
+    with pytest.raises(RuntimeError):
+        TelegramScraper().run(cfg)
+    assert SiteMetrics.objects.filter(site=site).count() == 1
