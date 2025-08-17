@@ -14,6 +14,7 @@ from .config import (
 )
 from sites.models import Site, SiteMetrics
 from .models import ScrapeLog
+from scrapers.built_in.telegram import TelegramScraper
 from leaks.mongo_utils import insert_leak
 from leaks.documents import LeakDoc
 from celery.result import AsyncResult
@@ -21,7 +22,6 @@ from celery import states, current_app
 from typing import Any
 
 logger = logging.getLogger(__name__)
-
 
 def _build_config(
     site: Site, url: str, payload: Optional[Dict]
@@ -63,7 +63,7 @@ def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
         logger.info("Site %s está desabilitado", site.url)
         return 0
 
-    scraper = registry.get(site.scraper)
+    scraper = registry.get(TelegramScraper.slug) if site.type == "telegram" else registry.get(site.scraper)
     if not scraper:
         raise RuntimeError(f"Scraper '{site.scraper}' não encontrado")
 
@@ -103,15 +103,31 @@ def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
 
 
 def schedule_scraper(site_id: int) -> AsyncResult:
-    """Schedule a Celery task to scrape a site."""
     site = Site.objects.get(pk=site_id)
-    payload = {
-        "siteId": site.id,
-        "type": site.type,
-        "url": site.url,
-        "bypassConfig": site.bypass_config,
-        "credentials": site.credentials,
-    }
+    if site.type == "telegram":
+        telegram_account = site.telegram_account
+        if not telegram_account:
+            raise RuntimeError("Site do tipo telegram sem TelegramAccount associado")
+
+        group_ids = []
+        if site.bypass_config and "telegram_group_ids" in site.bypass_config:
+            group_ids = site.bypass_config["telegram_group_ids"]
+        payload = {
+            "siteId": site.id,
+            "type": site.type,
+            "url": site.url,
+            "bypassConfig": site.bypass_config,
+            "credentials": site.credentials,
+            "group_ids": group_ids,
+        }
+    else:
+        payload = {
+            "siteId": site.id,
+            "type": site.type,
+            "url": site.url,
+            "bypassConfig": site.bypass_config,
+            "credentials": site.credentials,
+        }
     return current_app.send_task("scrape_site", args=[payload])
 
 
