@@ -63,9 +63,14 @@ def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
         logger.info("Site %s está desabilitado", site.url)
         return 0
 
-    scraper = registry.get(site.scraper)
-    if not scraper:
-        raise RuntimeError(f"Scraper '{site.scraper}' não encontrado")
+    if site.type == Site.SiteType.TELEGRAM:
+        from .telegram import TelegramScraper
+
+        scraper = TelegramScraper()
+    else:
+        scraper = registry.get(site.scraper)
+        if not scraper:
+            raise RuntimeError(f"Scraper '{site.scraper}' não encontrado")
 
     urls = [link.url for link in site.links.all()] or [site.url]
     total_inserted = 0

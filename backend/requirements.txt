@@ -29,3 +29,6 @@ authlib
 
 # Celery
 httpx
+
+# Telegram
+telethon

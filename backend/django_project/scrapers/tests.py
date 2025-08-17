@@ -201,7 +201,6 @@ def test_telegram_scraper_runs(monkeypatch):
         name="Group",
         url="https://t.me/group",
         type=Site.SiteType.TELEGRAM,
-        scraper="telegram",
         telegram_account=account,
         bypass_config={"use_proxies": False, "rotate_user_agent": False},
     )
@@ -255,7 +254,6 @@ def test_telegram_scraper_login_failure(monkeypatch):
         name="Group",
         url="https://t.me/group",
         type=Site.SiteType.TELEGRAM,
-        scraper="telegram",
         telegram_account=account,
         bypass_config={"use_proxies": False, "rotate_user_agent": False},
     )
@@ -282,3 +280,59 @@ def test_telegram_scraper_login_failure(monkeypatch):
     with pytest.raises(RuntimeError):
         TelegramScraper().run(cfg)
     assert SiteMetrics.objects.filter(site=site).count() == 1
+
+
+@pytest.mark.django_db
+def test_run_scraper_for_site_telegram(monkeypatch):
+    account = TelegramAccount.objects.create(
+        api_id=1, api_hash="h", session_string=""
+    )
+    site = Site.objects.create(
+        name="Group",
+        url="https://t.me/group",
+        type=Site.SiteType.TELEGRAM,
+        telegram_account=account,
+        bypass_config={"use_proxies": False, "rotate_user_agent": False},
+    )
+
+    class Msg:
+        id = 1
+        message = "hello"
+        date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        link = "https://t.me/group/1"
+
+    class Entity:
+        id = 123
+        username = "group"
+
+    class DummyClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def is_user_authorized(self):
+            return True
+
+        def get_entity(self, url):
+            return Entity()
+
+        def iter_messages(self, entity):
+            return [Msg()]
+
+    inserted = []
+
+    def fake_insert(doc):
+        inserted.append(doc)
+        return "1"
+
+    monkeypatch.setattr("scrapers.telegram.TelegramClient", DummyClient)
+    monkeypatch.setattr("scrapers.service.insert_leak", fake_insert)
+
+    count = service.run_scraper_for_site(site.id)
+    assert count == 1
+    assert inserted[0].site_id == site.id
