@@ -7,7 +7,7 @@ from telethon import TelegramClient, errors
 from telethon.sessions import StringSession
 from telethon.tl.types import Message
 
-from .base import BaseScraper
+from scrapers.base import BaseScraper
 from leaks.documents import LeakDoc
 from sites.models import Site, TelegramAccount, SiteMetrics
 

@@ -4,7 +4,6 @@ from .base import registry  # noqa: F401
 
 # Import plugins for side effects (they register themselves)
 from .ransomhouse import RansomHouseScraper  # noqa: F401
-from .telegram import TelegramScraper  # noqa: F401
 from .akira_cli import AkiraCLIScraper  # noqa: F401
 from .playnews import PlayNewsScraper  # noqa: F401
 
