@@ -11,7 +11,6 @@ from scrapers import service
 from accounts.models import PlatformUser
 
 
-
 @pytest.mark.django_db
 def test_scrapelog_model_str():
     site = Site.objects.create(name="S", url="http://s.com")
@@ -195,7 +194,9 @@ def test_run_scraper_produces_alert(monkeypatch):
 
 @pytest.mark.django_db
 def test_telegram_scraper_runs(monkeypatch):
-    account = TelegramAccount.objects.create(api_id=1, api_hash="h", session_string="s")
+    account = TelegramAccount.objects.create(
+        api_id=1, api_hash="h", session_string=""
+    )
     site = Site.objects.create(
         name="Group",
         url="https://t.me/group",

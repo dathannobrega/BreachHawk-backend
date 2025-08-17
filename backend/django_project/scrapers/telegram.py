@@ -55,9 +55,13 @@ class TelegramScraper(BaseScraper):
                         if username:
                             link = f"https://t.me/{username}/{msg.id}"
                         else:
-                            link = f"https://t.me/c/{abs(getattr(entity, 'id', 0))}/{msg.id}"
+                            entity_id = abs(getattr(entity, "id", 0))
+                            link = f"https://t.me/c/{entity_id}/{msg.id}"
                     found_at = msg.date
-                    if isinstance(found_at, datetime) and found_at.tzinfo is None:
+                    if (
+                        isinstance(found_at, datetime)
+                        and found_at.tzinfo is None
+                    ):
                         found_at = found_at.replace(tzinfo=timezone.utc)
                     leaks.append(
                         {
