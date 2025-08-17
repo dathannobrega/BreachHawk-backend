@@ -31,6 +31,7 @@ def _build_config(
     if payload:
         bypass = payload.get("bypassConfig", bypass)
         creds = payload.get("credentials", creds)
+
     bypass_cfg = (
         BypassConfig(**bypass)
         if isinstance(bypass, dict)

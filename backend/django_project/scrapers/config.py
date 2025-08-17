@@ -5,8 +5,8 @@ from typing import Optional, Literal
 
 @dataclass
 class BypassConfig:
-    use_proxies: bool
-    rotate_user_agent: bool
+    use_proxies: Optional[bool] = False
+    rotate_user_agent: Optional[bool] = False
     captcha_solver: Optional[str] = None
 
 
