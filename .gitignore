@@ -44,3 +44,5 @@ backend/django_project/media/
 backend/django_project/static
 
 setup.cfg
+
+mongodata_test

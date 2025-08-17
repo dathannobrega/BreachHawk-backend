@@ -34,7 +34,7 @@ class ScraperConfig:
     site_id: int
     type: Literal["forum", "website", "telegram", "discord", "paste"]
     url: str
-    bypass_config: BypassConfig
+    bypass_config: Optional[BypassConfig]
     credentials: Optional[Credentials]
     tor: TorOptions
     execution_options: ExecutionOptions

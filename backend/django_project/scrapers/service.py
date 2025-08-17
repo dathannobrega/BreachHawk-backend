@@ -14,7 +14,7 @@ from .config import (
 )
 from sites.models import Site, SiteMetrics
 from .models import ScrapeLog
-from scrapers.built_in.telegram import TelegramScraper
+from .built_in.telegram import TelegramScraper
 from leaks.mongo_utils import insert_leak
 from leaks.documents import LeakDoc
 from celery.result import AsyncResult
@@ -36,6 +36,7 @@ def _build_config(
         if isinstance(bypass, dict)
         else bypass
     )
+
     creds_cfg = Credentials(**creds) if isinstance(creds, dict) else None
     tor = TorOptions(
         max_retries=settings.TOR_MAX_RETRIES,
@@ -67,6 +68,8 @@ def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
     if not scraper:
         raise RuntimeError(f"Scraper '{site.scraper}' não encontrado")
 
+    logger.info("Iniciando scraper %s para o site %s", scraper.slug, site.url)
+    
     urls = [link.url for link in site.links.all()] or [site.url]
     total_inserted = 0
     for url in urls:
