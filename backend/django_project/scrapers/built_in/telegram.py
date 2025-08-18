@@ -2,10 +2,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import List, Dict, Any
 import logging
+import asyncio
 
 from telethon import TelegramClient, errors
 from telethon.sessions import StringSession
 from telethon.tl.types import Message
+from telethon.tl.functions.channels import JoinChannelRequest
 
 from scrapers.base import BaseScraper
 from leaks.documents import LeakDoc
@@ -117,28 +119,37 @@ class TelegramScraper(BaseScraper):
     def _init_client(self, account: TelegramAccount) -> TelegramClient:
         if not account.session_string:
             raise RuntimeError("session_string ausente. Gere manualmente usando Telethon.")
-        return TelegramClient(StringSession(account.session_string), account.api_id, account.api_hash)
 
-    def _get_entity(self, client: TelegramClient, group: dict) -> Entity:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return TelegramClient(
+            StringSession(account.session_string),
+            account.api_id,
+            account.api_hash,
+            loop=loop,
+        )
+    async def _get_entity(self, client: TelegramClient, group: dict) -> Any:
         if group.get("username"):
-          entity = client.loop.run_until_complete(client.get_entity(group["username"]))
+            entity = await client.get_entity(group["username"])
         else:
-          entity = client.loop.run_until_complete(client.get_entity(group["id"]))
+            entity = await client.get_entity(group["id"])
         return entity
 
-    def _ensure_in_group(self, client: TelegramClient, group: dict) -> None:
-      try:
-        entity = self._get_entity(client, group)
-      except errors.UserNotParticipantError:
+    async def _ensure_in_group(self, client: TelegramClient, group: dict) -> None:
         try:
-          if group.get("username"):
-            client.loop.run_until_complete(client(JoinChannelRequest(group["username"])))
-          else:
-            logger.warning(f"Não é possível entrar em grupo/canal sem username: {group}")
+            await self._get_entity(client, group)
+        except errors.UserNotParticipantError:
+            try:
+                if group.get("username"):
+                    await client(JoinChannelRequest(group["username"]))
+                else:
+                    logger.warning(
+                        f"Não é possível entrar em grupo/canal sem username: {group}"
+                    )
+            except Exception as exc:
+                logger.warning(f"Falha ao entrar no grupo {group}: {exc}")
         except Exception as exc:
-          logger.warning(f"Falha ao entrar no grupo {group}: {exc}")
-      except Exception as exc:
-        logger.warning(f"Erro ao verificar grupo {group}: {exc}")
+            logger.warning(f"Erro ao verificar grupo {group}: {exc}")
 
     def parse(self, config) -> List[Any]:
         logger.info(f"Parsing Telegram messages for site: {config.site_id}")
@@ -147,20 +158,22 @@ class TelegramScraper(BaseScraper):
         client = self._init_client(account)
         logger.info(f"Initialized Telegram client for account: {account}")
 
-        leaks: List[LeakDoc] = []
-        try:
-            with client:
+        loop = client.loop
+
+        async def _parse() -> List[LeakDoc]:
+            leaks: List[LeakDoc] = []
+            async with client:
                 for group in GROUPS:
                     logger.info(f"Processing entity: {group}")
                     if group.get("username") is None:
                         logger.warning(f"Group {group} não possui username")
                         continue
 
-                    self._ensure_in_group(client, group)
-                    entity = self._get_entity(client, group)
+                    await self._ensure_in_group(client, group)
+                    entity = await self._get_entity(client, group)
                     group_id = group["id"]
                     temp_leaks: List[LeakDoc] = []
-                    for message in client.iter_messages(entity, limit=100):
+                    async for message in client.iter_messages(entity, limit=100):
                         if not message.message:
                             continue
                         leak = LeakDoc(
@@ -172,16 +185,26 @@ class TelegramScraper(BaseScraper):
                         )
                         temp_leaks.append(leak)
                     leaks.extend(temp_leaks)
-                logger.info(f"Found {len(temp_leaks)} leaks")
+                logger.info(f"Found {len(leaks)} leaks")
+            return leaks
+
+        try:
+            leaks = loop.run_until_complete(_parse())
         except errors.SessionPasswordNeededError:
             logger.error("Session string precisa de autenticação 2FA. Gere manualmente.")
             SiteMetrics.objects.create(site=site, permanent_fail=True)
+            leaks = []
         except errors.AuthKeyUnregisteredError:
             logger.error("Session string inválida ou expirada. Gere nova session_string.")
             SiteMetrics.objects.create(site=site, permanent_fail=True)
+            leaks = []
         except Exception as exc:
             logger.error(f"Erro ao coletar mensagens do Telegram: {exc}")
             SiteMetrics.objects.create(site=site, permanent_fail=True)
+            leaks = []
+        finally:
+            loop.close()
+
         return leaks
 
     def fetch(self, config):
