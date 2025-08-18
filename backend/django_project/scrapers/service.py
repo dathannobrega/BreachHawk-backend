@@ -69,7 +69,8 @@ def run_scraper_for_site(site_id: int, payload: Optional[Dict] = None) -> int:
     if not scraper:
         raise RuntimeError(f"Scraper '{site.scraper}' não encontrado")
 
-    logger.info("Iniciando scraper %s para o site %s", scraper.slug, site.url)
+    scraper_slug = getattr(scraper, "slug", site.scraper)
+    logger.info("Iniciando scraper %s para o site %s", scraper_slug, site.url)
     
     urls = [link.url for link in site.links.all()] or [site.url]
     total_inserted = 0
