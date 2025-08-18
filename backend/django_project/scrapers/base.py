@@ -49,6 +49,9 @@ class BaseScraper(abc.ABC):
 
     def _build_session(self, config: ScraperConfig) -> requests.Session:
         session = requests.Session()
+        if config.bypass_config is None:
+            config.bypass_config = BypassConfig(use_proxies=False, rotate_user_agent=False)
+
         ua = (
             random.choice(USER_AGENTS)
             if config.bypass_config.rotate_user_agent
@@ -66,7 +69,7 @@ class BaseScraper(abc.ABC):
             kwargs = {}
             if (
                 config.url.endswith(".onion")
-                or config.bypass_config.use_proxies
+                or config.bypass_config is not None and config.bypass_config.use_proxies
             ):
                 kwargs["proxy"] = {"server": self.TOR_PROXY}
             ctx = await browser.new_context(**kwargs)

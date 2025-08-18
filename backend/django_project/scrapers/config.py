@@ -5,8 +5,8 @@ from typing import Optional, Literal
 
 @dataclass
 class BypassConfig:
-    use_proxies: bool
-    rotate_user_agent: bool
+    use_proxies: Optional[bool] = False
+    rotate_user_agent: Optional[bool] = False
     captcha_solver: Optional[str] = None
 
 
@@ -34,7 +34,7 @@ class ScraperConfig:
     site_id: int
     type: Literal["forum", "website", "telegram", "discord", "paste"]
     url: str
-    bypass_config: BypassConfig
+    bypass_config: Optional[BypassConfig]
     credentials: Optional[Credentials]
     tor: TorOptions
     execution_options: ExecutionOptions

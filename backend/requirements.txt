@@ -15,6 +15,7 @@ motor
 stripe
 PyYAML
 python-dotenv
+telethon
 
 #testes
 pytest-asyncio
