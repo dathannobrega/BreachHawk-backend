@@ -1,40 +1,26 @@
 # BreachHawk Backend
 
-Plataforma de intelligence focada em vazamentos na dark web. O backend utiliza **Django 5**, **Django REST Framework** e **Celery** para processar tarefas assíncronas de scraping.
+BreachHawk é uma plataforma de threat intelligence especializada em identificar e monitorar vazamentos divulgados na dark web. Este repositório contém o serviço backend responsável por expor as APIs, executar tarefas de scraping e notificar os usuários sobre novos incidentes.
 
-## Iniciando
+## Tecnologias Utilizadas
+- **Python 3.12**
+- **Django 5** e **Django REST Framework** para construção das APIs REST
+- **Celery** e **Redis** para tarefas assíncronas e filas
+- **PostgreSQL** como banco relacional principal
+- **MongoDB** para armazenamento dos dumps de vazamentos
+- **Stripe** para faturamento e gestão de assinaturas
+- **Docker** e **docker-compose** para orquestração dos serviços
 
-1. Instale as dependências em um ambiente virtual:
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-2. Execute as migrações do Django e crie um usuário administrador:
-   ```bash
-   cd backend/django_project
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
-3. Inicie o servidor de desenvolvimento:
-   ```bash
-   python manage.py runserver
-   ```
-4. Opcionalmente, suba todos os serviços com Docker:
-   ```bash
-   docker-compose up --build
-   ```
+## Principais Funcionalidades
+- Registro de usuários, autenticação JWT e login com Google
+- Gestão de empresas, planos de assinatura e faturamento via Stripe
+- Coleta de dados em fontes da dark web através de scrapers e workers Celery
+- Painel administrativo para gestão de sites monitorados e logs de scraping
+- Envio de notificações de vazamentos por e‑mail
 
-A API ficará disponível em `http://localhost:8000/api/`.
-
-## Variáveis de Ambiente
-
-Copie `.env.example` para `.env` antes de iniciar o projeto e ajuste os valores conforme o ambiente.
-Os valores padrão do exemplo são indicados para desenvolvimento e testes locais. Em produção utilize senhas e URLs reais para banco de dados, MongoDB, Redis, SMTP e outros serviços.
-
-## Estrutura
-
+## Estrutura do Repositório
 ```
 backend/
-├── Dockerfile
 ├── requirements.txt
 └── django_project/
     ├── manage.py
@@ -47,15 +33,38 @@ backend/
     ├── scrapers/            # scrapers e tasks Celery
     ├── sites/               # sites monitorados
     └── utils/               # utilitários diversos
-```
-
-Outras pastas importantes:
-
-```
 proxy/tor/      # container TOR para acesso .onion
 scraper/        # adapters legados de scraping
 worker/         # imagem do worker Celery
 ```
+
+## Configuração e Execução
+
+1. Criar e ativar um ambiente virtual.
+2. Instalar dependências:
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+3. Copiar o arquivo `.env.example` para `.env` e ajustar as variáveis necessárias (PostgreSQL, MongoDB, Redis, SMTP, Stripe etc.).
+4. Aplicar migrações e criar um superusuário:
+   ```bash
+   cd backend/django_project
+   python manage.py migrate
+   python manage.py createsuperuser
+   ```
+5. Iniciar o servidor de desenvolvimento:
+   ```bash
+   python manage.py runserver
+   ```
+
+### Executando com Docker
+Para subir todos os serviços (API, MongoDB, Redis, TOR, worker Celery etc.):
+
+```bash
+docker-compose up --build
+```
+
+A API ficará disponível em `http://localhost:8000/api/`.
 
 ## Endpoints Principais
 
@@ -75,11 +84,10 @@ Todos os endpoints estão sob o prefixo `/api/`.
 
 ## Testes
 
-Os testes utilizam `pytest`. Instale primeiro as dependências principais e, em
-seguida, as dependências de desenvolvimento descritas em
-`requirements-dev.txt`:
+Após instalar as dependências principais, instale os pacotes de desenvolvimento e execute os testes com `pytest`:
 
 ```bash
 pip install -r requirements-dev.txt
 pytest -q
 ```
+
